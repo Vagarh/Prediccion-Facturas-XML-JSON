@@ -1,0 +1,13 @@
+# Dependencias del Proyecto
+pandas
+numpy
+scikit-learn
+xgboost
+matplotlib
+seaborn
+fastapi
+uvicorn
+python-multipart
+# Para manejar los archivos JSON y XML
+lxml
+jsonlines
