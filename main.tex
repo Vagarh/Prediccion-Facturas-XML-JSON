@@ -1066,7 +1066,173 @@ Entorno & Jupyter Notebooks & Desarrollo interactivo y documentación \\
 \begin{itemize}
     \item \textbf{Entorno de desarrollo:} Workstation local con acceso a la base de datos MySQL de Savia Salud EPS (servidor \texttt{10.250.5.36:3306}, esquema \texttt{system\_savia})
     \item \textbf{Procesamiento:} Ejecución local en CPU; los algoritmos de ensamble (XGBoost, LightGBM, RandomForest) no requirieron aceleración GPU para los volúmenes de datos procesados
-    \item \textbf{Arquitectura de producción propuesta:} API REST con modelo serializado, pendiente de implementación
+    \item \textbf{Arquitectura de producción propuesta:} API REST con FastAPI, modelo serializado XGBoost y explicabilidad SHAP integrada. Arquitectura cloud detallada en §\ref{subsec:arq_aws}
+\end{itemize}
+
+\subsection{Propuesta de Arquitectura Cloud (AWS)}
+\label{subsec:arq_aws}
+
+La arquitectura de producción se diseñó bajo un paradigma \textit{serverless} que minimiza costos operativos y escala automáticamente con la demanda. La Figura \ref{fig:arq_aws} presenta la arquitectura propuesta con sus tres capas funcionales. Se proponen dos flujos complementarios de inferencia.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.95\textwidth}{!}{
+\begin{tikzpicture}[
+    node distance=0.8cm and 1.2cm,
+    aws/.style={rectangle, rounded corners, draw=minsalud, thick, fill=blue!10,
+                minimum width=2.2cm, minimum height=0.8cm, align=center, font=\small},
+    data/.style={cylinder, shape border rotate=90, draw=accent, thick, fill=orange!10,
+                 minimum width=1.8cm, minimum height=0.7cm, align=center, font=\scriptsize},
+    user/.style={rectangle, rounded corners, draw=black!60, thick, fill=green!10,
+                 minimum width=2cm, minimum height=0.7cm, align=center, font=\small},
+    layer/.style={rectangle, rounded corners, draw=black!30, dashed, inner sep=10pt},
+    arrow/.style={-stealth, thick},
+    darrow/.style={-stealth, thick, dashed}
+]
+
+% --- Capa 1: Ingesta ---
+\node[user] (ips) {IPS};
+\node[data, right=of ips] (rips) {JSON RIPS\\+ XML FEV};
+\node[aws, right=of rips] (apigw) {API\\Gateway};
+
+% --- Capa 2: Inferencia ---
+\node[aws, right=of apigw] (lambda) {Lambda\\(predict)};
+\node[data, above=0.8cm of lambda] (s3model) {S3\\(modelo)};
+\node[data, below=0.8cm of lambda] (dynamo) {DynamoDB\\(NIT store)};
+
+% --- Capa 3: Salida ---
+\node[aws, right=1.5cm of lambda] (response) {Respuesta\\JSON};
+\node[user, right=of response] (auditor) {Auditores};
+
+% --- Batch path ---
+\node[aws, below=2cm of apigw] (eventbridge) {EventBridge\\(6AM diario)};
+\node[aws, right=of eventbridge] (stepfn) {Step\\Functions};
+\node[aws, right=of stepfn] (sagemaker) {SageMaker\\Batch};
+\node[data, right=of sagemaker] (s3results) {S3\\(resultados)};
+\node[aws, below=0.8cm of s3results] (sns) {SNS\\(alertas)};
+
+% --- Monitoreo ---
+\node[aws, below=0.8cm of eventbridge] (cloudwatch) {CloudWatch\\(monitoreo)};
+
+% Flechas tiempo real
+\draw[arrow] (ips) -- (rips);
+\draw[arrow] (rips) -- (apigw);
+\draw[arrow] (apigw) -- (lambda);
+\draw[arrow] (s3model) -- (lambda);
+\draw[arrow] (dynamo) -- (lambda);
+\draw[arrow] (lambda) -- (response);
+\draw[arrow] (response) -- (auditor);
+
+% Flechas batch
+\draw[arrow] (eventbridge) -- (stepfn);
+\draw[arrow] (stepfn) -- (sagemaker);
+\draw[arrow] (sagemaker) -- (s3results);
+\draw[arrow] (s3results) -- (sns);
+
+% Monitoreo
+\draw[darrow] (lambda) |- (cloudwatch);
+\draw[darrow] (sagemaker) |- (cloudwatch);
+
+% Labels de capas
+\node[above=0.3cm of apigw, font=\footnotesize\bfseries, text=minsalud] {Tiempo Real};
+\node[above=0.3cm of stepfn, font=\footnotesize\bfseries, text=accent] {Batch Diario};
+
+\end{tikzpicture}
+}
+\caption{Arquitectura cloud propuesta en AWS: flujo de inferencia en tiempo real (arriba) y procesamiento batch diario (abajo), con monitoreo centralizado en CloudWatch.}
+\label{fig:arq_aws}
+\end{figure}
+
+\subsubsection{Flujo de Inferencia en Tiempo Real}
+
+Para la clasificación individual de facturas a medida que ingresan al sistema:
+
+\begin{enumerate}
+    \item La IPS envía la factura (JSON RIPS + XML FEV) al \textbf{API Gateway}, que aplica autenticación por API key y rate limiting
+    \item \textbf{AWS Lambda} ejecuta el pipeline de feature engineering (48 features) y carga el modelo XGBoost desde \textbf{S3}
+    \item Las features históricas del prestador (tasas de glosa, devolución) se consultan en \textbf{DynamoDB} (latencia $<$10ms)
+    \item Lambda retorna la predicción con explicación SHAP y causal probable según Res. 2284/2023
+\end{enumerate}
+
+\subsubsection{Flujo de Procesamiento Batch}
+
+Para el triaje diario del universo de facturas radicadas:
+
+\begin{enumerate}
+    \item \textbf{EventBridge} dispara el pipeline diariamente a las 6:00 AM (hora Colombia)
+    \item \textbf{Step Functions} orquesta: extracción de facturas pendientes $\rightarrow$ feature engineering $\rightarrow$ predicción batch $\rightarrow$ almacenamiento de resultados
+    \item \textbf{SageMaker Batch Transform} procesa el lote completo ($\sim$5,000 facturas/día)
+    \item Los resultados se almacenan en \textbf{S3} y una notificación \textbf{SNS} alerta al equipo de auditoría
+\end{enumerate}
+
+\subsubsection{Componentes AWS y Justificación}
+
+\begin{table}[H]
+\centering
+\caption{Componentes de la arquitectura cloud propuesta}
+\label{tab:aws_componentes}
+\small
+\begin{tabular}{@{}llp{6.5cm}@{}}
+\toprule
+\textbf{Servicio} & \textbf{Rol} & \textbf{Justificación} \\
+\midrule
+API Gateway & Punto de entrada HTTP & Escala a cero, throttling nativo, autenticación por API key \\
+Lambda & Inferencia en tiempo real & Modelo de 10 MB; cold start $\sim$3s, warm $<$500ms \\
+S3 & Artefactos y datos & Almacena modelo versionado, feature store y resultados batch \\
+DynamoDB & Feature store por NIT & Lookup por clave $<$10ms; $\sim$800 prestadores activos \\
+SageMaker & Reentrenamiento trimestral & Processing Job con instancias spot para reducir costos \\
+Step Functions & Orquestación batch & Flujo visual para pipeline diario de triaje \\
+CloudWatch & Monitoreo y alarmas & Alertas si latencia $>$1s o tasa de error $>$5\% \\
+CodePipeline & CI/CD & Deploy automático: tests $\rightarrow$ build $\rightarrow$ actualización Lambda \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Estimación de Costos}
+
+\begin{table}[H]
+\centering
+\caption{Estimación de costos mensuales AWS (150,000 facturas/mes)}
+\label{tab:aws_costos}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Servicio} & \textbf{Costo USD/mes} \\
+\midrule
+Lambda (150K invocaciones, 512 MB, 500ms promedio) & \$1.50 \\
+API Gateway (150K requests) & \$0.53 \\
+S3 ($<$1 GB almacenamiento) & \$0.10 \\
+DynamoDB (on-demand, $<$1K lecturas/día) & \$1.00 \\
+CloudWatch (logs 30 días) & \$5.00 \\
+SageMaker (amortizado, spot instances trimestrales) & \$0.50 \\
+Step Functions (30 ejecuciones/mes) & \$0.10 \\
+\midrule
+\textbf{Total estimado} & \textbf{\$8.73} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El costo mensual de \$8.73 USD contrasta con el valor promedio de una factura Glosada no detectada (\$6.8M COP $\approx$ \$1,600 USD). Si el modelo previene una sola glosa no detectada al mes, la infraestructura se paga 170 veces.
+
+\subsubsection{Monitoreo y Detección de Drift}
+
+El análisis de validación Out-of-Time (§\ref{subsec:oot_results}) reveló una degradación del 20.1\% en F1-macro tras 5 meses, motivada por un cambio en la distribución de clases (Glosada: 40.2\% $\rightarrow$ 67.5\%). Para mitigar este fenómeno:
+
+\begin{itemize}
+    \item \textbf{Reentrenamiento trimestral:} SageMaker Processing Job automatizado con datos de los últimos 12 meses
+    \item \textbf{Monitoreo de distribuciones:} Cálculo mensual del Population Stability Index (PSI) sobre las features de entrada
+    \item \textbf{Alertas de drift:} Si la distribución de clases predichas se desvía $>$15\% respecto al periodo de entrenamiento, se dispara una alarma CloudWatch
+    \item \textbf{Modelo shadow:} Evaluación continua del modelo actual vs. modelo reentrenado antes de promover a producción
+\end{itemize}
+
+\subsubsection{Seguridad y Cumplimiento}
+
+\begin{itemize}
+    \item VPC con subnets privadas para Lambda; acceso a DynamoDB vía VPC endpoint
+    \item Roles IAM con privilegios mínimos por función Lambda
+    \item Cifrado en reposo (SSE-S3) y en tránsito (TLS 1.2+)
+    \item Sin datos PII en los vectores de features: solo \texttt{factura\_id} y \texttt{nit\_prestador}
+    \item Región AWS: São Paulo (\texttt{sa-east-1}) con acuerdo de procesamiento de datos, cumpliendo Ley 1581 de 2012
 \end{itemize}
 
 \subsection{Datos}
@@ -1596,6 +1762,7 @@ El error más crítico, un Falso Negativo de Glosa (una factura Glosada clasific
 % SECCIÓN 8.3: VALIDACIÓN TEMPORAL (OUT-OF-TIME)
 %---------------------------------------------------
 \section{Validación Temporal y Deriva del Concepto (Concept Drift)}
+\label{subsec:oot_results}
 Un hallazgo crítico del proyecto surgió al validar el modelo contra un conjunto de datos fuera del tiempo de entrenamiento (Out-of-Time, OOT), correspondiente a facturas de agosto a diciembre de 2025. Los resultados (Tabla \ref{tab:resultados_oot}) revelaron una degradación significativa del rendimiento.
 
 \begin{table}[H]
