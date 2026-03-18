@@ -180,3 +180,82 @@ class TestBatchPredictEndpoint:
         data = response.json()
         returned_numbers = [p["numero_factura"] for p in data["predicciones"]]
         assert returned_numbers == numbers
+
+    def test_batch_single_item(
+        self, test_client, realistic_features: dict
+    ) -> None:
+        """Batch con un solo elemento funciona correctamente."""
+        payload = {
+            "facturas": [
+                {"numero_factura": "SINGLE-001", "features": realistic_features}
+            ]
+        }
+        response = test_client.post("/v1/predict/batch", json=payload)
+        assert response.status_code == 200
+        assert response.json()["total"] == 1
+
+    def test_batch_processing_time_positive(
+        self, test_client, realistic_features: dict
+    ) -> None:
+        """El tiempo de procesamiento es positivo."""
+        payload = {
+            "facturas": [
+                {"numero_factura": "TIME-001", "features": realistic_features}
+            ]
+        }
+        response = test_client.post("/v1/predict/batch", json=payload)
+        assert response.json()["tiempo_procesamiento_ms"] > 0
+
+    def test_batch_empty_returns_error(self, test_client) -> None:
+        """Lista vacía retorna error (422 o 500 dependiendo del handler)."""
+        payload = {"facturas": []}
+        response = test_client.post("/v1/predict/batch", json=payload)
+        assert response.status_code in {422, 500}
+
+
+class TestPredictEndpointExtended:
+    """Tests adicionales para POST /v1/predict."""
+
+    def test_predict_wrong_type_returns_422(
+        self, test_client, realistic_features: dict
+    ) -> None:
+        """Valor de tipo incorrecto retorna 422."""
+        bad_features = {**realistic_features, "valor_factura": "not_a_number"}
+        payload = {
+            "numero_factura": "TEST-TYPE",
+            "features": bad_features,
+        }
+        response = test_client.post("/v1/predict", json=payload)
+        assert response.status_code == 422
+
+    def test_predict_empty_body_returns_422(self, test_client) -> None:
+        """Body vacío retorna 422."""
+        response = test_client.post("/v1/predict", json={})
+        assert response.status_code == 422
+
+    def test_predict_deterministic(
+        self, test_client, realistic_features: dict
+    ) -> None:
+        """Dos predicciones con el mismo input producen la misma clase."""
+        payload = {
+            "numero_factura": "DETERM-001",
+            "features": realistic_features,
+        }
+        r1 = test_client.post("/v1/predict", json=payload).json()
+        r2 = test_client.post("/v1/predict", json=payload).json()
+        assert r1["clase"] == r2["clase"]
+        assert r1["confianza"] == r2["confianza"]
+
+
+class TestNonExistentEndpoints:
+    """Tests para endpoints que no existen."""
+
+    def test_404_for_unknown_route(self, test_client) -> None:
+        """Ruta desconocida retorna 404."""
+        response = test_client.get("/v1/nonexistent")
+        assert response.status_code == 404
+
+    def test_wrong_method(self, test_client) -> None:
+        """Método HTTP incorrecto retorna 405."""
+        response = test_client.put("/v1/predict", json={})
+        assert response.status_code == 405
