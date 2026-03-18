@@ -1038,6 +1038,67 @@ Donde $A$=Auditada, $G$=Glosada, $D$=Devuelta
 \label{fig:arquitectura_desp}
 \end{figure}
 
+\subsection{Fase 6B: Validación del Sistema de Predicción}
+\label{subsec:fase6b}
+
+Una vez refactorizado el código de producción de los notebooks explorativos a módulos Python estructurados, surgió una necesidad no contemplada en el diseño metodológico original: validar de forma sistemática y automatizada que el software implementado era correcto, robusto y operativamente viable. Esta fase, denominada internamente \textit{Fase 6B}, consistió en la construcción de una suite de pruebas de seis capas para la API de predicción.
+
+La transición de notebooks a código modular introduce riesgos que no son capturables mediante métricas estadísticas del modelo: errores de serialización, comportamientos inesperados ante inputs maliciosos, regresiones de rendimiento y degradación silenciosa de las métricas del modelo en producción. Una suite de pruebas automatizadas permite detectar estos riesgos antes del despliegue y mantenerlos bajo control durante el ciclo de vida del sistema.
+
+\subsubsection{Arquitectura de Pruebas (6 Capas)}
+
+\begin{table}[H]
+\centering
+\caption{Inventario de la suite de pruebas automatizadas del sistema de predicción.}
+\label{tab:testing_suite}
+\small
+\begin{tabular}{@{}llcc@{}}
+\toprule
+\textbf{Archivo} & \textbf{Tipo de Prueba} & \textbf{Tests} & \textbf{Requiere Modelo} \\
+\midrule
+\texttt{test\_config.py} & Unitaria & 10 & No \\
+\texttt{test\_features.py} & Unitaria, Property & 22 & No \\
+\texttt{test\_predict.py} & Unitaria, Integración, Property & 15 & Parcial \\
+\texttt{test\_explainability.py} & Unitaria, Integración & 20 & Parcial \\
+\texttt{test\_schemas.py} & Unitaria, Property & 23 & No \\
+\texttt{test\_api.py} & Integración & 22 & Sí \\
+\texttt{test\_performance.py} & Rendimiento & 7 & Sí \\
+\texttt{test\_security.py} & Seguridad & 12 & Sí \\
+\texttt{test\_model\_regression.py} & Regresión del Modelo & 10 & Sí \\
+\texttt{test\_docker.py} & Contenedor Docker & 6 & Sí + Docker \\
+\midrule
+\textbf{Total} & & \textbf{147} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Las seis capas abordan dimensiones distintas de calidad:
+
+\begin{itemize}
+    \item \textbf{Pruebas Unitarias:} Verifican componentes individuales en aislamiento mediante \textit{mocks} de XGBoost y SHAP, sin necesidad del modelo real. Cubren los módulos de configuración, ingeniería de características, predicción, explicabilidad y esquemas Pydantic.
+    \item \textbf{Pruebas de Integración:} Validan el comportamiento extremo a extremo de la API REST, verificando que todos los endpoints retornen los códigos HTTP y estructuras JSON correctos ante inputs válidos e inválidos.
+    \item \textbf{Property-based Testing (Hypothesis):} Generan cientos de inputs aleatorios para verificar propiedades invariantes: probabilidades que siempre suman 1.0, determinismo de predicciones, rechazo de NaN/Inf, y preservación del identificador de factura.
+    \item \textbf{Pruebas de Rendimiento:} Verifican umbrales de latencia ($<$500ms por factura, $<$5s por lote de 10) y consumo de memoria ($<$100 MB por predicción individual).
+    \item \textbf{Pruebas de Seguridad:} Validan que la API sea resistente a ataques de inyección SQL, Cross-Site Scripting (XSS) y path traversal, y que no filtre trazas de error ni información del sistema.
+    \item \textbf{Pruebas de Regresión del Modelo:} Ejecutan el modelo sobre un dataset estático de 100 muestras estratificadas (33/33/34 por clase) y verifican que las métricas no caigan por debajo de umbrales mínimos: F1-macro $\geq$ 0.65, Recall Glosada $\geq$ 0.60, AUC-ROC $\geq$ 0.85.
+\end{itemize}
+
+\subsubsection{Métricas de la Suite}
+
+La suite alcanzó una \textbf{cobertura de código del 96.85\%} sobre los módulos de producción (meta: $\geq$80\%), con un tiempo de ejecución total de \textbf{21.76 segundos} (meta: $<$5 minutos). La distribución por módulo fue: \texttt{schemas.py} y \texttt{config.py} al 100\%, \texttt{predict.py} al 100\%, \texttt{engineering.py} al 98\%, \texttt{shap\_explanations.py} al 97\% y \texttt{main.py} (API) al 90\%.
+
+\subsubsection{Integración Continua (CI/CD)}
+
+Las pruebas se integraron en un flujo de integración continua mediante \textbf{GitHub Actions}, con tres trabajos ejecutados automáticamente en cada commit:
+
+\begin{enumerate}
+    \item \textbf{unit-tests:} Ejecuta pruebas unitarias y de propiedades (sin modelo real). Bloquea el merge si falla.
+    \item \textbf{integration-tests:} Ejecuta pruebas de integración y seguridad. Configurado como \textit{continue-on-error} dado que requiere artefactos del modelo.
+    \item \textbf{coverage:} Genera el reporte de cobertura y lo publica en Codecov.
+\end{enumerate}
+
+Esta suite de pruebas garantiza que cada nueva versión del modelo o del código de la API cumpla los mismos estándares de calidad antes de ser promovida a producción, cerrando el ciclo de validación entre el modelo estadístico y el sistema de software que lo operacionaliza.
+
 \section{Materiales}
 
 \subsection{Software y Herramientas}
@@ -1057,6 +1118,9 @@ Explicabilidad & SHAP & Análisis de explicabilidad (XAI) \\
 Visualización & Matplotlib, Seaborn & Generación de gráficas y reportes \\
 Versionamiento & Git & Control de código fuente \\
 Entorno & Jupyter Notebooks & Desarrollo interactivo y documentación \\
+API/Despliegue & FastAPI, Pydantic, Uvicorn & API REST de predicción con esquemas validados \\
+Testing & pytest, Hypothesis, psutil & Validación automatizada en 6 capas (147 pruebas) \\
+CI/CD & GitHub Actions & Integración continua con 3 trabajos automatizados \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1904,6 +1968,79 @@ Esta capacidad de explicación individual es la que permite transformar el proce
 \end{itemize}
 \end{tcolorbox}
 
+%---------------------------------------------------
+% CAPÍTULO: DISCUSIÓN
+%---------------------------------------------------
+\chapter{Discusión}
+
+Este capítulo analiza los resultados obtenidos en su contexto operativo, examina la discrepancia entre el rendimiento en el conjunto de prueba y los datos fuera del tiempo de entrenamiento, y discute las implicaciones de estos hallazgos para el sistema de predicción propuesto. También se identifican las limitaciones del estudio que deben tenerse en cuenta al interpretar los resultados y proyectar su generalización.
+
+%---------------------------------------------------
+\section{Viabilidad Técnica del Sistema Predictivo}
+%---------------------------------------------------
+
+Los resultados del modelo XGBoost deben interpretarse en el contexto del problema que buscan resolver: el sistema actual de auditoría prestacional en Savia Salud EPS opera con revisión manual al 100\% de las facturas radicadas, sin ningún mecanismo de priorización automática. En ese escenario base, la tasa de detección de glosas sin modelo es esencialmente aleatoria o depende de la pericia individual de cada auditor.
+
+El modelo alcanzó un \textbf{AUC-ROC de 0.9078}, superando el umbral de aceptación ($\geq$0.85), y un \textbf{F1-Score Macro de 0.7490}, marginalmente por debajo de la meta de 0.75. El \textbf{Recall de la clase Glosada fue 0.7261} frente a una meta de 0.80, lo que implica que aproximadamente el 27\% de las facturas que serán glosadas no son identificadas por el modelo al umbral de decisión por defecto. Sin embargo, este resultado debe contextualizarse: en el proceso actual, sin triaje inteligente, este porcentaje podría ser considerablemente mayor dependiendo de la carga de trabajo del equipo auditor.
+
+La discrepancia frente a la meta de Recall no invalida la viabilidad del sistema. En primer lugar, la curva Precision-Recall para la clase Glosada (Figura \ref{fig:pr_curve_glosada}) muestra que existe margen para mejorar el Recall ajustando el umbral de decisión, a expensas de aumentar los falsos positivos. En segundo lugar, como herramienta de priorización —no de decisión autónoma—, el modelo no necesita capturar el 100\% de las glosas: basta con que las facturas clasificadas como ``Glosada'' o ``Devuelta'' representen un conjunto más pequeño y más concentrado en riesgo real que la totalidad del portafolio.
+
+Complementariamente, la \textbf{suite de 147 pruebas automatizadas con 96.85\% de cobertura} valida que el sistema no solo es estadísticamente capaz sino operativamente robusto: el código supera pruebas de seguridad (resistencia a inyección SQL, XSS y path traversal), de rendimiento (latencia $<$500ms por predicción) y de regresión del modelo (métricas sobre dataset estático de 100 muestras). Esta capa de validación de software, aunque no estaba contemplada en el plan original, resultó ser un componente indispensable para demostrar la viabilidad real del sistema más allá de las métricas estadísticas del modelo.
+
+%---------------------------------------------------
+\section{Discrepancia Temporal: El Concept Drift como Riesgo Operativo}
+%---------------------------------------------------
+
+El hallazgo más significativo del proyecto no proviene del conjunto de prueba sino de la validación Out-of-Time (OOT): una \textbf{degradación del 20.1\% en F1-Score Macro} (de 0.7432 a 0.5941) al aplicar el modelo a facturas de agosto a diciembre de 2025, cinco meses después del período de entrenamiento. El Recall de la clase Devuelta colapsa un 62.1\%, y el de Glosada cae un 25.2\%.
+
+La causa raíz identificada es un \textbf{concept drift} en la distribución de la variable objetivo: la proporción de facturas Glosadas se duplicó del 40.2\% al 67.5\% en el período OOT, mientras que las Devoluciones cayeron del 25.7\% al 9.7\%. Este cambio en la distribución de clases invalida parcialmente los umbrales de decisión aprendidos durante el entrenamiento, haciendo que el modelo subestime la clase Glosada y sobreestime la clase Auditada.
+
+Este fenómeno es consistente con la literatura sobre detección de fraude y auditoría en sistemas de salud. \cite{chan2022fraud} documentan degradaciones similares en modelos de detección de fraude en healthcare cuando la distribución de actividades fraudulentas cambia tras un período de monitoreo intensivo. \cite{joshi2020claims} señalan que los modelos de predicción de auditoría de pólizas de seguro pierden entre un 15\% y un 30\% de su rendimiento en ventanas de 3 a 6 meses sin reentrenamiento. En el caso de Savia Salud EPS, el salto observado en la tasa de glosas en el segundo semestre de 2025 puede estar relacionado con cambios en el comportamiento de radicación de los prestadores tras la entrada en vigor de requisitos adicionales de la Circular 007 de 2025.
+
+Es importante destacar que el concept drift \textbf{no invalida el enfoque}: confirma, en cambio, que los modelos de ML en auditoría prestacional son artefactos vivos que requieren mantenimiento continuo. Un modelo con F1=0.75 que se reentrena trimestralmente con datos frescos es considerablemente más valioso que un modelo con F1=0.80 que se degrada a F1=0.59 en cinco meses sin intervención.
+
+%---------------------------------------------------
+\section{Impacto del Drift en la Arquitectura del Sistema Propuesto}
+%---------------------------------------------------
+
+Los hallazgos sobre concept drift tienen implicaciones directas para la arquitectura cloud propuesta (§\ref{subsec:arq_aws}). Lo que en el diseño original se presentó como componentes de monitoreo y reentrenamiento periódico debe reinterpretarse como \textbf{componentes críticos y no opcionales} del sistema.
+
+\begin{itemize}
+    \item \textbf{CloudWatch (monitoreo):} El análisis del período OOT demuestra que la distribución de clases predichas puede cambiar drásticamente en menos de dos meses. La alarma propuesta sobre desviación $>$15\% en la distribución de clases predichas debería haberse disparado en octubre de 2025, permitiendo intervención antes de que el rendimiento colapsara.
+
+    \item \textbf{SageMaker (reentrenamiento):} El costo de un ciclo de reentrenamiento trimestral en instancias spot (\textasciitilde\$15 USD) es insignificante frente al costo de operar con un modelo degradado (F1=0.59), que en términos prácticos significa que el 46\% de las facturas Glosadas no son identificadas correctamente. Con el Recall de Glosada observado en OOT (0.539) y un promedio de 16,143 facturas glosadas en el período de prueba, el modelo degradado fallaría en identificar aproximadamente 7,432 facturas adicionales por período.
+
+    \item \textbf{Suite de regression tests como guardián de calidad:} Cada ciclo de reentrenamiento debe culminar con la ejecución automatizada de las pruebas de regresión del modelo (\texttt{test\_model\_regression.py}), que verifican umbrales mínimos sobre un dataset estático. Solo si el nuevo modelo supera estas pruebas debería promoverse a producción. Este patrón —denominado \textit{model validation gate}— es una práctica estándar en MLOps \cite{rajpurkar2022ai} que el pipeline propuesto implementa explícitamente.
+\end{itemize}
+
+En síntesis, el pipeline de producción robusto para este sistema adopta el siguiente flujo cíclico:
+
+\begin{center}
+\textit{Detectar drift} $\rightarrow$ \textit{Reentrenar con datos frescos} $\rightarrow$ \textit{Ejecutar regression tests} $\rightarrow$ \textit{Si pasa: desplegar; si no: alerta}
+\end{center}
+
+Este ciclo convierte el concept drift de un riesgo pasivo en un mecanismo de mejora continua del sistema.
+
+%---------------------------------------------------
+\section{Limitaciones del Estudio}
+%---------------------------------------------------
+
+Los resultados de este trabajo deben interpretarse considerando las siguientes limitaciones:
+
+\begin{enumerate}
+    \item \textbf{Generalización a otras EPS:} El dataset proviene exclusivamente de Savia Salud EPS (Medellín, Colombia). La distribución de prestadores, régimen de afiliación, mix de servicios y tasas históricas de glosa son específicas de esta organización. La transferencia del modelo a otras EPS requeriría validación y posiblemente reentrenamiento con datos locales.
+
+    \item \textbf{Ventana temporal limitada:} El período de entrenamiento (16 meses: marzo 2024 a julio 2025) puede no capturar la totalidad de los ciclos regulatorios del sector salud colombiano. Cambios normativos significativos —como actualizaciones a la Circular 007 o nuevas versiones de los estándares RIPS— podrían introducir concept drift adicional no representado en los datos de entrenamiento.
+
+    \item \textbf{Dependencia de la calidad de datos RIPS/FEV:} Las 48 características del modelo provienen de los datos estructurados de la factura electrónica. Instituciones prestadoras con menor madurez digital o mayor tasa de errores en la generación de RIPS y FEV tendrían inputs de menor calidad, lo que podría degradar el rendimiento del modelo incluso sin concept drift en la distribución real de clases.
+
+    \item \textbf{Ausencia de texto libre:} Las notas del auditor, los comentarios de glosa y las justificaciones de devolución contienen información semántica valiosa que el modelo actual no aprovecha. La incorporación de técnicas de Procesamiento de Lenguaje Natural (NLP) sobre estas fuentes podría mejorar significativamente el Recall de la clase Glosada.
+
+    \item \textbf{Parsers JSON/XML no implementados:} La Fase 1D del proyecto —desarrollo de los parsers de producción para JSON RIPS y XML FEV directamente desde los archivos originales— no fue implementada. El pipeline actual opera sobre features pre-computadas extraídas de la base de datos MySQL, lo que lo hace dependiente de la infraestructura de datos de Savia Salud EPS y no portable a entornos que no tengan esta BD.
+
+    \item \textbf{Umbral de decisión sin optimizar:} El Recall de Glosada (0.726) no alcanzó la meta (0.80) al umbral por defecto (0.5). La curva Precision-Recall sugiere que un umbral ajustado podría superar esta meta a expensas de mayor tasa de falsos positivos, pero la calibración óptima requiere validación con el equipo de auditores para determinar el balance aceptable entre carga de trabajo adicional y glosas detectadas.
+\end{enumerate}
+
 \chapter{Conclusiones}
 
 \begin{enumerate}
@@ -1920,6 +2057,8 @@ Esta capacidad de explicación individual es la que permite transformar el proce
     \item \textbf{Disponibilidad de datos para predicción inmediata:} Se verificó que las 48 características utilizadas por el modelo provienen de fuentes disponibles al momento de la radicación: cabecera de factura (16 features), detalle de servicios del XML/JSON (21 features) y perfil histórico del prestador pre-calculado (11 features). Ninguna requiere que un auditor haya revisado la factura, habilitando el triaje automático.
 
     \item \textbf{Contribución original al campo:} Este trabajo aborda una brecha de conocimiento específica al aplicar técnicas de ML a los estándares FEV-RIPS del sistema de salud colombiano, siendo el primer estudio que integra variables clínicas y financieras de estos estándares para clasificación multiclase de estados de auditoría.
+
+    \item \textbf{Viabilidad operativa validada por software:} La construcción de una suite de 147 pruebas automatizadas —incluyendo pruebas unitarias, de integración, rendimiento, seguridad y regresión del modelo— con 96.85\% de cobertura sobre el código de producción confirma que el sistema es operable y desplegable. Esta fase, no contemplada en el diseño metodológico original, emergió como requisito al transitar de prototipos en notebooks a código estructurado, evidenciando que la viabilidad de un sistema de ML en salud se demuestra no solo mediante métricas estadísticas del modelo sino mediante la robustez verificable de su implementación de software.
 \end{enumerate}
 
 \chapter{Recomendaciones}
