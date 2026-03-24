@@ -20,6 +20,7 @@
 \usepackage{pgfplots} % Para gráficas
 \usepackage{tcolorbox} % Para recuadros bonitos
 \usepackage{caption} % Para mejor manejo de leyendas
+\usepackage{subcaption} % Para subfiguras con \subcaption
 \usepackage{hyperref} % Para enlaces y marcadores
 
 \pgfplotsset{compat=1.18}
@@ -1913,7 +1914,21 @@ El gráfico beeswarm por clase (Figura \ref{fig:shap_beeswarm}) descompone la co
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{Codigo/reports/figures/shap_02_beeswarm_por_clase.png}
+\begin{minipage}[t]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_02_beeswarm_auditada_v2.png}
+  \subcaption{Clase 0 — Auditada}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_02_beeswarm_glosada_v2.png}
+  \subcaption{Clase 1 — Glosada}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_02_beeswarm_devuelta_v2.png}
+  \subcaption{Clase 2 — Devuelta}
+\end{minipage}
 \caption{SHAP beeswarm plots por clase. Cada punto representa una factura; el color indica el valor de la feature (rojo = alto, azul = bajo). La posición horizontal muestra el impacto SHAP sobre la probabilidad de cada clase.}
 \label{fig:shap_beeswarm}
 \end{figure}
@@ -1947,7 +1962,21 @@ La Figura \ref{fig:shap_waterfall} muestra un ejemplo real de estas explicacione
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{Codigo/reports/figures/shap_03_waterfall_por_clase.png}
+\begin{minipage}[t]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_03_waterfall_auditada_v2.png}
+  \subcaption{Clase 0 — Auditada\\P(Auditada)=0.93}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_03_waterfall_glosada_v2.png}
+  \subcaption{Clase 1 — Glosada\\P(Glosada)=0.98}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_03_waterfall_devuelta_v2.png}
+  \subcaption{Clase 2 — Devuelta\\P(Devuelta)=1.00}
+\end{minipage}
 \caption{Waterfall plots SHAP para tres facturas representativas (una por clase). Cada barra muestra la contribución de una feature a la probabilidad de la clase predicha, partiendo del valor base $E[f(X)]$. Las barras rojas empujan hacia la clase predicha; las azules empujan en contra.}
 \label{fig:shap_waterfall}
 \end{figure}

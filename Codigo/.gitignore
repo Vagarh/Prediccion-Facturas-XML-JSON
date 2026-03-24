@@ -1,0 +1,124 @@
+# =============================================================================
+# .gitignore — Sistema Predictivo Auditoría Prestacional
+# Savia Salud EPS · Universidad EAFIT · 2026
+# =============================================================================
+
+# ── DATOS — Nunca al repositorio por tamaño y confidencialidad ───────────────
+
+# Datos crudos (vacío en este proyecto, pero proteger por si acaso)
+data/raw/
+
+# Datasets procesados: archivos grandes (70 MB total)
+# Excepción: feature_list.txt sí se incluye (solo nombres, sin datos)
+data/processed/*.parquet
+data/interim/*.parquet
+data/interim/*.csv
+
+# Análisis de BD: contiene muestras reales de Savia Salud
+data/database_analysis/
+data/Info_data_base/*.csv
+
+# ── MODELOS — Archivos binarios grandes (182 MB) ─────────────────────────────
+# Los modelos se regeneran con el notebook 05_Model_Training.ipynb
+models/artifacts/*.joblib
+models/artifacts/*.pkl
+models/artifacts/*.h5
+
+# El modelo XGBoost en JSON es necesario para la API — SÍ se incluye
+# models/artifacts/*.json  ← NO ignorar
+
+# Artefactos SHAP (NPZ puede ser grande)
+reports/evaluations/*.npz
+
+# ── PYTHON ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+.env
+ENV/
+
+# Distribución / empaquetado
+dist/
+build/
+*.egg-info/
+*.egg
+
+# ── JUPYTER ──────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── TESTING Y COBERTURA ──────────────────────────────────────────────────────
+.pytest_cache/
+htmlcov/
+coverage.xml
+.coverage
+.coverage.*
+
+# Hypothesis
+.hypothesis/
+
+# ── IDEs Y EDITORES ──────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── LATEX (en directorio raíz del proyecto) ──────────────────────────────────
+# Los temporales de LaTeX no van al repo
+*.aux
+*.toc
+*.lof
+*.lot
+*.log
+*.out
+*.synctex.gz
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ind
+*.ilg
+
+# ── CREDENCIALES Y CONFIGURACIÓN LOCAL ───────────────────────────────────────
+*.env
+.env.*
+config_local.py
+db_config.py
+conexion_bd.py
+*_credentials.*
+*_secrets.*
+
+# ── ARCHIVOS TEMPORALES DEL OS ───────────────────────────────────────────────
+*.tmp
+*.temp
+*.bak
+*.swp
+desktop.ini
+
+# =============================================================================
+# QUÉ SÍ SE INCLUYE (recordatorio):
+#   ✅ src/              — Código de producción modularizado
+#   ✅ tests/            — Suite de 147 tests
+#   ✅ notebooks/        — 9 notebooks de análisis
+#   ✅ models/artifacts/*.json    — Modelo XGBoost (JSON nativo, ~5 MB)
+#   ✅ reports/figures/  — Figuras a 300dpi para tesis
+#   ✅ reports/evaluations/*.json — Métricas SHAP
+#   ✅ data/processed/20260309_feature_list.txt — Lista de features
+#   ✅ data/Info_data_base/*.md, *.sql  — Documentación de BD (sin datos)
+#   ✅ .github/workflows/tests.yml — CI/CD
+#   ✅ Dockerfile, requirements.txt, pytest.ini, README.md
+#   ✅ tests/fixtures/test_dataset_100.parquet — 100 muestras (anonimizadas)
+# =============================================================================
