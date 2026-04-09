@@ -245,49 +245,107 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
   - Ejecutar `pytest Codigo/tests/ -v --tb=short` y confirmar suite completa verde.
     Verificar cobertura ≥ 80%. Consultar al usuario si hay dudas.
 
-- [ ] 14. Demo MVP con Interfaz Gráfica Atractiva
-  - [ ] 14.1 Implementar interfaz web con Streamlit
+- [ ] 14. Sistema de Reentrenamiento Automático y Monitoreo
+  - [ ] 14.1 Implementar `Codigo/src/training/retraining_scheduler.py`
+    - Clase `RetrainingScheduler` con método `check_drift_and_retrain()` que:
+      evalúa PSI mensual, detecta concept drift, y activa reentrenamiento automático
+    - Método `schedule_monthly_retrain()` que programa reentrenamiento cada mes
+    - Método `retrain_with_recent_data(months_back: int = 3)` que:
+      extrae datos de los últimos N meses, regenera embeddings, reentrena XGBoost
+    - Método `backup_current_model()` que respalda modelo actual antes de reentrenar
+    - Método `validate_new_model()` que compara métricas nuevo vs actual
+    - Usar `logging`, type hints, docstrings Google-style, `RANDOM_STATE = 42`
+    - _Requisitos: 7.1, 7.2, 8.1, 8.5_
+  - [ ] 14.2 Implementar `Codigo/src/monitoring/model_monitor.py`
+    - Clase `ModelMonitor` con método `track_performance(predictions, actuals)` que:
+      almacena métricas diarias en base de datos local (SQLite)
+    - Método `generate_monthly_report()` que produce reporte de degradación
+    - Método `detect_performance_drop(threshold: float = 0.05)` que:
+      detecta caída en F1-macro o Recall Glosada superior al umbral
+    - Método `get_model_metrics_history()` que retorna histórico de métricas
+    - Dashboard de métricas con tendencias temporales y alertas
+    - _Requisitos: 6.4, 7.3, 7.4_
+  - [ ] 14.3 Integración con API FastAPI para reentrenamiento
+    - Agregar endpoint `POST /v1/admin/retrain` que activa reentrenamiento manual
+    - Agregar endpoint `GET /v1/admin/model/metrics` que retorna métricas actuales
+    - Agregar endpoint `GET /v1/admin/drift/status` que retorna estado de drift
+    - Agregar endpoint `POST /v1/admin/model/rollback` que revierte a modelo anterior
+    - Autenticación básica para endpoints administrativos
+    - _Requisitos: 5.1, 5.5, 7.4_
+  - [ ] 14.4 Base de datos de métricas y versionado de modelos
+    - Crear `Codigo/src/storage/model_registry.py` con:
+      registro de versiones de modelos, métricas por versión, timestamps
+    - Esquema SQLite para almacenar: model_id, version, metrics, created_at, is_active
+    - Función `save_model_version()` que serializa modelo con metadata
+    - Función `load_model_version(version: str)` que carga modelo específico
+    - Función `list_model_versions()` que retorna histórico de versiones
+    - _Requisitos: 8.2, 8.4, 8.5_
+  - [ ] 14.5 Cron job y automatización
+    - Script `Codigo/scripts/monthly_retrain.py` para ejecución programada
+    - Configuración de cron job que ejecuta reentrenamiento primer día de cada mes
+    - Notificaciones por email/Slack cuando reentrenamiento completa
+    - Logs detallados de proceso de reentrenamiento con timestamps
+    - Rollback automático si nuevo modelo tiene métricas inferiores
+    - _Requisitos: 7.1, 7.2, 8.5_
+  - [ ] 14.6 Dashboard de administración
+    - Interfaz web administrativa en `Codigo/admin/dashboard.py` (Flask/Streamlit)
+    - Visualización de métricas históricas y tendencias de drift
+    - Botones para activar reentrenamiento manual y rollback
+    - Comparación de versiones de modelos lado a lado
+    - Logs de reentrenamiento y alertas de sistema
+    - _Requisitos: 6.4, 7.4, UX administrativa_
+
+- [ ] 15. Demo MVP con Interfaz Gráfica Atractiva
+  - [ ] 15.1 Implementar interfaz web con Streamlit
     - Crear `Codigo/demo/streamlit_app.py` con interfaz moderna y atractiva
     - Diseño responsive con sidebar para configuración y área principal para resultados
     - Tema oscuro/claro configurable, colores corporativos de Savia Salud EPS
     - Componentes: formulario de entrada, visualización de predicciones, explicaciones enriquecidas
     - Métricas en tiempo real: latencia, confianza, drift warnings
+    - **Integración con sistema de reentrenamiento:** Mostrar versión del modelo activo
     - _Requisitos: 5.1, 5.2, 4.1, 4.2_
-  - [ ] 14.2 Integración con pipeline completo
+  - [ ] 15.2 Integración con pipeline completo
     - Conectar con API FastAPI existente o directamente con modelos
     - Carga de modelos XGBoost base y enriquecido (si disponible)
     - Inicialización de EmbeddingService, PrivacyGuard y ExplanationGenerator
+    - **Mostrar información de modelo:** Versión, fecha de entrenamiento, métricas
     - Manejo de errores gracioso con mensajes informativos para el usuario
     - _Requisitos: 1.4, 2.1, 4.5_
-  - [ ] 14.3 Funcionalidades de demostración
+  - [ ] 15.3 Funcionalidades de demostración
     - **Entrada de datos:** Formulario intuitivo para ingresar datos de factura
       (48 features numéricas + campos textuales opcionales)
     - **Predicción comparativa:** Mostrar lado a lado resultados del modelo base vs enriquecido
     - **Explicaciones enriquecidas:** Narrativas en lenguaje natural contextualizadas
     - **Visualizaciones:** Gráficos de confianza, importancia de features, métricas de separabilidad
     - **Estado del sistema:** Panel de monitoreo con estado de Ollama, latencias, drift warnings
+    - **Métricas del modelo:** Mostrar F1-macro, Recall Glosada, fecha de último reentrenamiento
     - _Requisitos: 3.1, 4.1, 4.2, 7.4_
-  - [ ] 14.4 Elementos visuales atractivos
+  - [ ] 15.4 Elementos visuales atractivos
     - **Dashboard moderno:** Cards con métricas, progress bars, indicadores de estado
     - **Gráficos interactivos:** Plotly para visualizaciones dinámicas (SHAP, embeddings, métricas)
     - **Animaciones sutiles:** Transiciones suaves, loading spinners, efectos hover
     - **Iconografía médica:** Iconos relacionados con auditoría, salud, análisis
     - **Paleta de colores:** Verde/azul corporativo con acentos para alertas y éxitos
     - _Requisitos: UX/UI atractiva_
-  - [ ] 14.5 Casos de uso demostrativos
+  - [ ] 15.5 Casos de uso demostrativos
     - **Caso 1:** Factura típica sin campos textuales (modelo base)
     - **Caso 2:** Factura con diagnóstico CIE-10 complejo (enriquecimiento semántico)
     - **Caso 3:** Factura con observaciones clínicas detalladas (explicación enriquecida)
     - **Caso 4:** Simulación de concept drift (alertas PSI)
+    - **Caso 5:** Comparación de versiones de modelo (antes/después de reentrenamiento)
     - Datos sintéticos realistas basados en patrones del dataset real
     - _Requisitos: 2.2, 4.3, 7.4_
-  - [ ] 14.6 Documentación y deployment del demo
+  - [ ] 15.6 Documentación y deployment del demo
     - README específico para el demo en `Codigo/demo/README.md`
     - Instrucciones de instalación y ejecución paso a paso
     - Screenshots de la interfaz y casos de uso
     - Dockerfile específico para el demo con todas las dependencias
     - Script de inicialización que verifica Ollama y descarga modelos necesarios
     - _Requisitos: Documentación y deployment_
+
+- [ ] 16. Checkpoint final — Todos los tests pasan
+  - Ejecutar `pytest Codigo/tests/ -v --tb=short` y confirmar suite completa verde.
+    Verificar cobertura ≥ 80%. Consultar al usuario si hay dudas.
 
 ## Notas
 
@@ -298,3 +356,6 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
 - No usar `print()` en `src/` — usar `logging`
 - Todas las funciones públicas requieren type hints y docstrings Google-style
 - No realizar llamadas a APIs externas — toda inferencia es local
+- **Sistema de reentrenamiento:** Programar reentrenamiento mensual automático para mantener modelo actualizado con datos recientes y mitigar concept drift
+- **Versionado de modelos:** Mantener registro de versiones con métricas y capacidad de rollback
+- **Monitoreo continuo:** Tracking de métricas en producción con alertas de degradación
