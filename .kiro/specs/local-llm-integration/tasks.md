@@ -32,7 +32,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
       logger local sin almacenar contenido textual
     - Usar `logging` (no `print`), type hints y docstrings Google-style
     - _Requisitos: 1.1, 1.2, 1.5_
-  - [ ] 2.2 Escribir tests unitarios para PrivacyGuard
+  - [x] 2.2 Escribir tests unitarios para PrivacyGuard
     - Verificar que `verify_local_only()` lanza excepción con host externo
     - Verificar que `check_ollama_available()` retorna `False` cuando el servidor no responde
     - _Requisitos: 1.1, 1.2_
@@ -48,12 +48,12 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
       (ej. "paciente", "presenta", "refiere")
     - Usar `logging`, type hints y docstrings Google-style
     - _Requisitos: 2.3_
-  - [ ] 3.2 Escribir tests unitarios para NLP Pipeline
+  - [x] 3.2 Escribir tests unitarios para NLP Pipeline
     - Verificar que `preprocess_text(None)` retorna `""`
     - Verificar que stopwords médicos son eliminados
     - Verificar que la función es idempotente (aplicar dos veces = mismo resultado)
     - _Requisitos: 2.3, 2.4_
-  - [ ] 3.3 Escribir property test para NLP Pipeline
+  - [x] 3.3 Escribir property test para NLP Pipeline
     - **Propiedad 1: Idempotencia del preprocesamiento**
     - Para cualquier texto de entrada, `preprocess_text(preprocess_text(t)) == preprocess_text(t)`
     - **Valida: Requisito 2.3**
@@ -68,7 +68,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
       retornar `zero_vector()` sin invocar el modelo
     - Usar `logging`, type hints y docstrings Google-style; `RANDOM_STATE = 42`
     - _Requisitos: 2.1, 2.4, 8.1_
-  - [ ] 4.2 Escribir property test para Embedding Service
+  - [x] 4.2 Escribir property test para Embedding Service
     - **Propiedad 2: Dimensión fija de embeddings**
     - Para cualquier texto no nulo, `len(service.encode(text)) == EMBEDDING_DIM`
     - **Valida: Requisito 2.1**
@@ -76,7 +76,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - **Propiedad 3: Vector cero para inputs nulos**
     - `service.encode(None)` y `service.encode("")` producen `np.zeros(EMBEDDING_DIM)`
     - **Valida: Requisito 2.4**
-  - [ ] 4.4 Escribir tests unitarios para EmbeddingService
+  - [x] 4.4 Escribir tests unitarios para EmbeddingService
     - Verificar que `encode_batch` produce la misma forma que N llamadas a `encode`
     - Verificar que el modelo se carga una sola vez (singleton)
     - _Requisitos: 2.1, 2.4_
@@ -107,7 +107,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Los embeddings generados para el conjunto de test no contienen información
       de registros con `fecha_radicacion` anterior al corte de test
     - **Valida: Requisito 2.5, 8.3**
-  - [ ] 6.4 Escribir tests unitarios para embedding_pipeline
+  - [x] 6.4 Escribir tests unitarios para embedding_pipeline
     - Verificar que `enrich_features` con todos los campos nulos produce vector de
       longitud `48 + EMBEDDING_DIM * n_text_fields` (relleno con ceros)
     - Verificar que el orden temporal se preserva en `generate_split_embeddings`
@@ -137,7 +137,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
       de fecha y sufijo `_v2_enriched.json`
     - Mantener tarea multiclase (3 clases) siempre
     - _Requisitos: 2.6, 2.7, 6.1–6.7, 8.1, 8.3, 8.4_
-  - [ ] 7.3 Escribir tests unitarios para LLMEvaluator
+  - [x] 7.3 Escribir tests unitarios para LLMEvaluator
     - Verificar que `run_full_evaluation` produce JSON con todas las claves requeridas
     - Verificar que el resultado negativo se documenta correctamente
     - _Requisitos: 3.5, 3.6_
