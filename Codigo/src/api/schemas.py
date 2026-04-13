@@ -158,6 +158,19 @@ class PredictionRequest(BaseModel):
     features: FeatureInput = Field(
         description="Las 48 features pre-computadas de la factura"
     )
+    # Campos textuales opcionales para enriquecimiento semántico
+    diagnostico_texto: str | None = Field(
+        default=None,
+        description="Texto del diagnóstico principal CIE-10 (opcional para enriquecimiento)"
+    )
+    cups_texto: str | None = Field(
+        default=None,
+        description="Descripción del código CUPS principal (opcional para enriquecimiento)"
+    )
+    observaciones: str | None = Field(
+        default=None,
+        description="Observaciones clínicas del auditor (opcional para enriquecimiento)"
+    )
 
 
 class BatchPredictionRequest(BaseModel):
@@ -220,6 +233,15 @@ class PredictionResponse(BaseModel):
     timestamp_prediccion: datetime = Field(
         description="Fecha y hora de la predicción (zona horaria Colombia)"
     )
+    # Campos opcionales para integración LLM
+    explicacion_enriquecida: str | None = Field(
+        default=None,
+        description="Explicación en lenguaje natural generada por LLM (si disponible)"
+    )
+    drift_warning: str | None = Field(
+        default=None,
+        description="Advertencia de concept drift si PSI > umbral (si aplica)"
+    )
 
 
 class BatchPredictionResponse(BaseModel):
@@ -253,3 +275,75 @@ class HealthResponse(BaseModel):
     modelo_cargado: bool = Field(description="Si el modelo está cargado en memoria")
     version: str = Field(description="Versión de la API")
     timestamp: datetime = Field(description="Fecha y hora del health check")
+
+
+class LLMStatusResponse(BaseModel):
+    """Estado del sistema LLM local."""
+
+    ollama_available: bool = Field(description="Si Ollama está disponible y responde")
+    active_model: str | None = Field(
+        default=None,
+        description="Modelo LLM activo en Ollama (si disponible)"
+    )
+    embedding_model: str = Field(description="Modelo de embeddings en uso")
+    latency_p50_ms: float | None = Field(
+        default=None,
+        description="Latencia percentil 50 de generación LLM (ms)"
+    )
+    latency_p95_ms: float | None = Field(
+        default=None,
+        description="Latencia percentil 95 de generación LLM (ms)"
+    )
+    drift_monitoring_active: bool = Field(
+        description="Si el monitoreo de drift está activo"
+    )
+    last_drift_check: datetime | None = Field(
+        default=None,
+        description="Fecha del último chequeo de drift"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Schemas administrativos (reentrenamiento)
+# ---------------------------------------------------------------------------
+
+
+class AdminRetrainResponse(BaseModel):
+    """Respuesta del endpoint de reentrenamiento manual."""
+
+    triggered: bool = Field(description="Si el reentrenamiento fue activado")
+    success: bool | None = Field(default=None, description="Si el reentrenamiento fue exitoso")
+    new_version: str | None = Field(default=None, description="Nueva versión del modelo")
+    metrics: dict[str, float] | None = Field(default=None, description="Métricas del nuevo modelo")
+    reason: str | None = Field(default=None, description="Razón de fallo si no fue exitoso")
+    timestamp: datetime = Field(description="Timestamp de la operación")
+
+
+class AdminMetricsResponse(BaseModel):
+    """Métricas actuales del modelo en producción."""
+
+    baseline_metrics: dict[str, float] = Field(description="Métricas del modelo base")
+    recent_metrics: dict[str, float] | None = Field(
+        default=None, description="Métricas recientes (últimos 7 registros)"
+    )
+    performance_drop_detected: bool = Field(description="Si se detectó degradación")
+    active_version: str | None = Field(default=None, description="Versión activa del modelo")
+    timestamp: datetime = Field(description="Timestamp de la consulta")
+
+
+class AdminDriftResponse(BaseModel):
+    """Estado de concept drift del modelo."""
+
+    drift_status: str = Field(description="Estado: stable, warning, alert, sin_datos")
+    mean_psi: float | None = Field(default=None, description="PSI medio calculado")
+    retrain_recommended: bool = Field(description="Si se recomienda reentrenamiento")
+    timestamp: datetime = Field(description="Timestamp del chequeo")
+
+
+class AdminRollbackResponse(BaseModel):
+    """Respuesta del endpoint de rollback de modelo."""
+
+    success: bool = Field(description="Si el rollback fue exitoso")
+    rolled_back_to: str | None = Field(default=None, description="Versión a la que se revirtió")
+    reason: str | None = Field(default=None, description="Razón de fallo si no fue exitoso")
+    timestamp: datetime = Field(description="Timestamp de la operación")

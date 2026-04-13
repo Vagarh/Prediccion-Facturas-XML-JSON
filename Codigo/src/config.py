@@ -189,6 +189,36 @@ FEATURE_TO_CAUSAL: dict[str, str] = {
 }
 
 # ---------------------------------------------------------------------------
+# Configuración LLM Local (Fase 7 — Integración LLM)
+# ---------------------------------------------------------------------------
+
+OLLAMA_BASE_URL: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+"""URL base del servidor Ollama. Debe apuntar a localhost para cumplir Ley 1581."""
+
+EMBEDDING_MODEL_NAME: str = os.environ.get(
+    "EMBEDDING_MODEL_NAME", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+)
+"""Nombre del modelo Sentence Transformers para generación de embeddings."""
+
+EMBEDDING_DIM: int = 384
+"""Dimensión fija del vector de embeddings producido por el modelo de embeddings."""
+
+OLLAMA_TIMEOUT_S: float = float(os.environ.get("OLLAMA_TIMEOUT_S", "30.0"))
+"""Timeout en segundos para llamadas al servidor Ollama."""
+
+PSI_DRIFT_WARN_THRESHOLD: float = 0.20
+"""Umbral PSI para advertencia de concept drift (PSI > 0.20 → advertencia)."""
+
+PSI_DRIFT_ALERT_THRESHOLD: float = 0.15
+"""Umbral PSI para alerta de concept drift (PSI > 0.15 → alerta)."""
+
+LLM_CANDIDATES: list[str] = ["llama3.2", "mistral", "qwen2.5", "phi3"]
+"""Modelos LLM candidatos a evaluar mediante Ollama."""
+
+EXPLANATION_MAX_SECONDS: float = 10.0
+"""Tiempo máximo (segundos, p95) para generar una explicación en lenguaje natural."""
+
+# ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
 

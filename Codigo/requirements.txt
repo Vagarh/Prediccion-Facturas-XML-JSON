@@ -1,6 +1,6 @@
 # Dependencias del Proyecto
 pandas
-numpy
+numpy>=1.26
 scikit-learn
 xgboost
 matplotlib
@@ -15,6 +15,11 @@ shap>=0.51
 # Para manejar los archivos JSON y XML
 lxml
 jsonlines
+# LLM Local (Fase 7 — Integración LLM)
+sentence-transformers>=3.0
+spacy>=3.7
+ollama>=0.3
+scipy>=1.13
 # Testing
 httpx
 pytest>=7.0

@@ -109,7 +109,44 @@ Codigo/
 pip install -r requirements.txt
 ```
 
-### 2. Levantar la API
+### 2. Instalar Ollama y descargar modelos LLM candidatos
+
+La integración LLM opera **estrictamente en local** (Ley 1581 de Colombia — datos sensibles de salud nunca salen de la infraestructura propia).
+
+**Instalar Ollama:**
+
+```bash
+# Linux / macOS
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Windows: descargar el instalador desde https://ollama.com/download
+```
+
+**Verificar que el servidor está activo:**
+
+```bash
+ollama serve          # inicia el servidor (puerto 11434 por defecto)
+curl http://localhost:11434/api/tags   # debe retornar JSON con modelos disponibles
+```
+
+**Descargar modelos candidatos** (ejecutar una vez; requiere ~4–8 GB por modelo):
+
+```bash
+ollama pull llama3.2   # Llama 3.2 — recomendado como punto de partida
+ollama pull mistral    # Mistral 7B
+ollama pull qwen2.5    # Qwen 2.5
+ollama pull phi3       # Phi-3 Mini — más liviano, menor VRAM
+```
+
+**Descargar modelo spaCy en español:**
+
+```bash
+python -m spacy download es_core_news_md
+```
+
+> **Nota:** Si Ollama no está disponible al iniciar la API, el endpoint de predicción XGBoost base sigue funcionando normalmente. Solo las funciones de enriquecimiento semántico y generación de explicaciones quedan deshabilitadas (HTTP 503 en `/v1/llm/status`).
+
+### 3. Levantar la API
 
 ```bash
 uvicorn src.api.main:app --reload --port 8000
@@ -122,7 +159,7 @@ docker build -t auditoria-api .
 docker run -p 8000:8000 auditoria-api
 ```
 
-### 3. Endpoints disponibles
+### 4. Endpoints disponibles
 
 | Método | Ruta | Descripción |
 |---|---|---|
@@ -130,8 +167,9 @@ docker run -p 8000:8000 auditoria-api
 | `GET` | `/v1/model/info` | Versión, métricas, fecha |
 | `POST` | `/v1/predict` | Predicción individual (48 features) |
 | `POST` | `/v1/predict/batch` | Predicción batch |
+| `GET` | `/v1/llm/status` | Estado del servidor Ollama y modelo activo |
 
-### 4. Ejemplo de predicción
+### 5. Ejemplo de predicción
 
 ```bash
 curl -X POST http://localhost:8000/v1/predict \
