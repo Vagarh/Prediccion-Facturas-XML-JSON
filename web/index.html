@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analítica Predictiva para Auditoría en Salud · Juan Felipe Cardona</title>
+  <meta name="description" content="Modelo de IA que predice el estado de auditoría de facturas médicas en el sistema de salud colombiano. XGBoost · Recall Glosada 89.6% · Universidad EAFIT" />
+
+  <!-- Fonts: Crimson Pro (headings) + Atkinson Hyperlegible (body) + Roboto Mono (data) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Crimson Pro', 'Georgia', 'serif'],
+            sans: ['Atkinson Hyperlegible', 'system-ui', 'sans-serif'],
+            mono: ['Roboto Mono', 'monospace'],
+          },
+          colors: {
+            bg:       '#020617',
+            surface:  '#0E1223',
+            card:     '#131929',
+            border:   '#1e2d45',
+            muted:    '#1A1E2F',
+            text:     '#F8FAFC',
+            subtle:   '#94A3B8',
+            accent:   '#22C55E',
+            blue:     '#3B82F6',
+            indigo:   '#6366F1',
+          },
+          animation: {
+            'fade-up': 'fadeUp 0.6s ease forwards',
+            'fade-in': 'fadeIn 0.8s ease forwards',
+            'counter': 'counter 2s ease-out forwards',
+          },
+          keyframes: {
+            fadeUp:  { '0%': { opacity: '0', transform: 'translateY(24px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            fadeIn:  { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { font-family: 'Atkinson Hyperlegible', sans-serif; background: #020617; color: #F8FAFC; }
+    h1,h2,h3,h4 { font-family: 'Crimson Pro', serif; }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* Gradient text */
+    .grad-text { background: linear-gradient(135deg, #22C55E 0%, #3B82F6 50%, #6366F1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* Metric card glow */
+    .metric-card { background: #131929; border: 1px solid #1e2d45; border-radius: 12px; padding: 1.5rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .metric-card:hover { border-color: #22C55E44; box-shadow: 0 0 28px #22C55E18; }
+
+    /* Nav blur */
+    .nav-blur { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(2,6,23,0.85); }
+
+    /* Section divider */
+    .section-divider { height: 1px; background: linear-gradient(90deg, transparent, #1e2d45 40%, #1e2d45 60%, transparent); margin: 0 auto; max-width: 800px; }
+
+    /* Timeline */
+    .timeline-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, #22C55E44 20%, #22C55E44 80%, transparent); transform: translateX(-50%); }
+
+    /* Code block */
+    .code-block { background: #0E1223; border: 1px solid #1e2d45; border-radius: 8px; font-family: 'Roboto Mono', monospace; font-size: 0.78rem; line-height: 1.6; overflow-x: auto; }
+    .code-block .kw  { color: #6366F1; }
+    .code-block .str { color: #22C55E; }
+    .code-block .num { color: #F59E0B; }
+    .code-block .cm  { color: #475569; font-style: italic; }
+
+    /* Tag pill */
+    .tag { display: inline-block; background: #1A1E2F; border: 1px solid #1e2d45; border-radius: 999px; padding: 2px 12px; font-size: 0.75rem; color: #94A3B8; font-family: 'Roboto Mono', monospace; }
+    .tag.green { border-color: #22C55E44; color: #22C55E; background: #0d1f14; }
+
+    /* Video placeholder */
+    .video-placeholder { background: linear-gradient(135deg, #0E1223, #131929); border: 2px dashed #1e2d45; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 360px; gap: 1rem; transition: border-color 0.2s; }
+    .video-placeholder:hover { border-color: #3B82F620; }
+
+    /* Play button */
+    .play-btn { width: 72px; height: 72px; background: linear-gradient(135deg, #22C55E, #16A34A); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 0 32px #22C55E40; }
+    .play-btn:hover { transform: scale(1.08); box-shadow: 0 0 48px #22C55E60; }
+
+    /* Future interface glow card */
+    .future-card { background: linear-gradient(135deg, #0d1f14 0%, #131929 50%, #12172e 100%); border: 1px solid #22C55E22; border-radius: 16px; padding: 2rem; position: relative; overflow: hidden; }
+    .future-card::before { content: ''; position: absolute; top: -40%; right: -20%; width: 300px; height: 300px; background: radial-gradient(circle, #22C55E10 0%, transparent 70%); pointer-events: none; }
+
+    /* Smooth counter animation */
+    @keyframes countUp { from { opacity: 0.3; } to { opacity: 1; } }
+    .count-animate { animation: countUp 1.5s ease; }
+  </style>
+</head>
+<body class="bg-bg text-text antialiased">
+
+  <!-- ═══════════════════════════════════════════════════════ NAV -->
+  <nav class="nav-blur fixed top-0 left-0 right-0 z-50 border-b border-border">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <span class="font-mono text-sm text-subtle">jfcardona · EAFIT 2026</span>
+      <div class="hidden md:flex items-center gap-6 text-sm text-subtle">
+        <a href="#problema" class="hover:text-text transition-colors">Problema</a>
+        <a href="#solucion" class="hover:text-text transition-colors">Solución</a>
+        <a href="#resultados" class="hover:text-text transition-colors">Resultados</a>
+        <a href="#arquitectura" class="hover:text-text transition-colors">Arquitectura</a>
+        <a href="#futuro" class="hover:text-text transition-colors">Futuro</a>
+        <a href="#video" class="hover:text-text transition-colors">Video</a>
+      </div>
+      <span class="tag green">Recall Glosada 89.6%</span>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════ HERO -->
+  <section class="min-h-[100dvh] flex flex-col items-center justify-center text-center px-6 pt-20 relative overflow-hidden">
+    <!-- Background grid -->
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(#22C55E 1px, transparent 1px), linear-gradient(90deg, #22C55E 1px, transparent 1px); background-size: 48px 48px;"></div>
+    <!-- Glow orbs -->
+    <div class="absolute top-1/3 left-1/4 w-96 h-96 bg-indigo opacity-[0.04] rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent opacity-[0.06] rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative max-w-4xl mx-auto reveal" id="hero-reveal">
+      <span class="tag mb-6 inline-block">Maestría en Ciencia de Datos · Universidad EAFIT</span>
+      <h1 class="font-serif text-5xl md:text-7xl font-semibold leading-tight mb-6">
+        Analítica Predictiva<br/>para
+        <span class="grad-text"> Auditoría Prestacional</span>
+      </h1>
+      <p class="text-subtle text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
+        Un modelo de inteligencia artificial que predice, en el momento de radicación,
+        si una factura médica será <strong class="text-text">Auditada</strong>,
+        <strong class="text-text">Glosada</strong> o <strong class="text-text">Devuelta</strong> —
+        sin intervención humana previa.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="#resultados" class="px-8 py-3 rounded-lg font-medium text-bg transition-all" style="background: linear-gradient(135deg, #22C55E, #16A34A); box-shadow: 0 0 24px #22C55E30;">
+          Ver Resultados
+        </a>
+        <a href="#video" class="px-8 py-3 rounded-lg font-medium text-text border border-border hover:border-subtle transition-colors">
+          Video Explicativo
+        </a>
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-subtle text-xs">
+      <span>scroll</span>
+      <div class="w-px h-8 bg-gradient-to-b from-subtle to-transparent"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ MÉTRICAS HERO -->
+  <section class="py-16 px-6">
+    <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="metric-card reveal text-center">
+        <p class="font-mono text-3xl font-medium text-accent mb-1">633K</p>
+        <p class="text-subtle text-sm">Facturas analizadas</p>
+      </div>
+      <div class="metric-card reveal text-center" style="transition-delay: 0.1s">
+        <p class="font-mono text-3xl font-medium text-blue mb-1">89.6%</p>
+        <p class="text-subtle text-sm">Recall Glosada</p>
+      </div>
+      <div class="metric-card reveal text-center" style="transition-delay: 0.2s">
+        <p class="font-mono text-3xl font-medium text-indigo mb-1">0.9078</p>
+        <p class="text-subtle text-sm">AUC-ROC</p>
+      </div>
+      <div class="metric-card reveal text-center" style="transition-delay: 0.3s">
+        <p class="font-mono text-3xl font-medium" style="color:#F59E0B">380</p>
+        <p class="text-subtle text-sm">Tests automatizados</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ EL PROBLEMA -->
+  <section id="problema" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="tag mb-4 inline-block">Capítulo 1 · El Problema</span>
+        <h2 class="font-serif text-4xl md:text-5xl font-semibold mb-4">600.000 facturas.<br/>Un auditor a la vez.</h2>
+        <p class="text-subtle text-lg max-w-2xl mx-auto">
+          El sistema de salud colombiano exige revisión manual de cada factura antes de pagar.
+          El resultado: rezagos de hasta 90 días y millones en glosas no detectadas.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="metric-card reveal">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:#1A1E2F; border:1px solid #EF444430;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h3 class="font-serif text-xl font-semibold mb-2">90 días de rezago</h3>
+          <p class="text-subtle text-sm leading-relaxed">La revisión manual genera cuellos de botella que comprometen la liquidez de toda la red prestadora.</p>
+        </div>
+        <div class="metric-card reveal" style="transition-delay:0.1s">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:#1A1E2F; border:1px solid #F59E0B30;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <h3 class="font-serif text-xl font-semibold mb-2">10.5× más impacto</h3>
+          <p class="text-subtle text-sm leading-relaxed">Las facturas glosadas valen en promedio 10.5 veces más que las auditadas. Cada falso negativo cuesta caro.</p>
+        </div>
+        <div class="metric-card reveal" style="transition-delay:0.2s">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:#1A1E2F; border:1px solid #22C55E30;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <h3 class="font-serif text-xl font-semibold mb-2">Resolución 2275/2023</h3>
+          <p class="text-subtle text-sm leading-relaxed">El Ministerio de Salud estandarizó datos en JSON/XML. Ahora existe la materia prima para predecir automáticamente.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ LA SOLUCIÓN -->
+  <section id="solucion" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="tag mb-4 inline-block">Capítulo 2 · La Solución</span>
+        <h2 class="font-serif text-4xl md:text-5xl font-semibold mb-4">Triaje inteligente<br/>en el momento de radicación</h2>
+        <p class="text-subtle text-lg max-w-2xl mx-auto">
+          48 características extraídas automáticamente → predicción + explicación en milisegundos.
+        </p>
+      </div>
+
+      <!-- Flow -->
+      <div class="reveal flex flex-col md:flex-row items-start md:items-center gap-4 mb-16 overflow-x-auto pb-4">
+        <div class="metric-card text-center min-w-[140px] flex-1">
+          <p class="font-mono text-xs text-subtle mb-1">INPUT</p>
+          <p class="font-serif text-lg font-semibold">Factura FEV/RIPS</p>
+          <p class="text-subtle text-xs mt-1">JSON + XML</p>
+        </div>
+        <div class="text-accent text-2xl px-2 hidden md:block">→</div>
+        <div class="metric-card text-center min-w-[140px] flex-1">
+          <p class="font-mono text-xs text-subtle mb-1">PROCESO</p>
+          <p class="font-serif text-lg font-semibold">48 Features</p>
+          <p class="text-subtle text-xs mt-1">cabecera + detalle + perfil</p>
+        </div>
+        <div class="text-accent text-2xl px-2 hidden md:block">→</div>
+        <div class="metric-card text-center min-w-[140px] flex-1" style="border-color:#22C55E44">
+          <p class="font-mono text-xs text-accent mb-1">MODELO</p>
+          <p class="font-serif text-lg font-semibold">XGBoost v2</p>
+          <p class="text-subtle text-xs mt-1">+ Sentence Transformers</p>
+        </div>
+        <div class="text-accent text-2xl px-2 hidden md:block">→</div>
+        <div class="metric-card text-center min-w-[140px] flex-1">
+          <p class="font-mono text-xs text-subtle mb-1">OUTPUT</p>
+          <p class="font-serif text-lg font-semibold">Clase + SHAP</p>
+          <p class="text-subtle text-xs mt-1">predicción + explicación</p>
+        </div>
+      </div>
+
+      <!-- 3 clases -->
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="metric-card reveal border-border">
+          <div class="w-3 h-3 rounded-full bg-blue mb-3"></div>
+          <h3 class="font-serif text-xl font-semibold mb-2">Auditada</h3>
+          <p class="text-subtle text-sm">Aprobada sin observaciones. Pago fluye sin fricción.</p>
+        </div>
+        <div class="metric-card reveal" style="transition-delay:0.1s; border-color:#EF444430;">
+          <div class="w-3 h-3 rounded-full mb-3" style="background:#EF4444"></div>
+          <h3 class="font-serif text-xl font-semibold mb-2">Glosada</h3>
+          <p class="text-subtle text-sm">Rechazada parcial o totalmente. <strong class="text-text">Mayor impacto financiero.</strong> Meta: detectar ≥80%.</p>
+        </div>
+        <div class="metric-card reveal" style="transition-delay:0.2s; border-color:#F59E0B30;">
+          <div class="w-3 h-3 rounded-full mb-3" style="background:#F59E0B"></div>
+          <h3 class="font-serif text-xl font-semibold mb-2">Devuelta</h3>
+          <p class="text-subtle text-sm">Devuelta por errores formales. Requiere corrección y re-radicación.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ RESULTADOS -->
+  <section id="resultados" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="tag mb-4 inline-block">Capítulo 3 · Resultados</span>
+        <h2 class="font-serif text-4xl md:text-5xl font-semibold mb-4">La meta fue superada.</h2>
+        <p class="text-subtle text-lg max-w-2xl mx-auto">
+          De Recall Glosada 0.7261 (v1) a <strong class="text-accent">0.8961</strong> (v2) — enriqueciendo el modelo con textos clínicos reales.
+        </p>
+      </div>
+
+      <!-- Tabla comparativa -->
+      <div class="reveal overflow-x-auto mb-12">
+        <table class="w-full text-sm" style="border-collapse: separate; border-spacing: 0;">
+          <thead>
+            <tr class="text-left text-subtle font-mono text-xs">
+              <th class="px-4 py-3" style="border-bottom:1px solid #1e2d45">Algoritmo</th>
+              <th class="px-4 py-3 text-right" style="border-bottom:1px solid #1e2d45">F1-Macro</th>
+              <th class="px-4 py-3 text-right" style="border-bottom:1px solid #1e2d45">AUC-ROC</th>
+              <th class="px-4 py-3 text-right" style="border-bottom:1px solid #1e2d45">Recall Glosada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="text-subtle hover:bg-muted/40 transition-colors">
+              <td class="px-4 py-3" style="border-bottom:1px solid #0e1527">XGBoost v1</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-bottom:1px solid #0e1527">0.7490</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-bottom:1px solid #0e1527">0.9078</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-bottom:1px solid #0e1527">0.7261</td>
+            </tr>
+            <tr class="text-subtle hover:bg-muted/40 transition-colors">
+              <td class="px-4 py-3" style="border-bottom:1px solid #0e1527">LightGBM</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-bottom:1px solid #0e1527">0.7441</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-bottom:1px solid #0e1527">0.9063</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-bottom:1px solid #0e1527">0.7124</td>
+            </tr>
+            <tr class="text-subtle hover:bg-muted/40 transition-colors">
+              <td class="px-4 py-3" style="border-bottom:1px solid #0e1527">Random Forest</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-bottom:1px solid #0e1527">0.7217</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-bottom:1px solid #0e1527">0.8966</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-bottom:1px solid #0e1527">0.7406</td>
+            </tr>
+            <tr style="background:#0d1f14;">
+              <td class="px-4 py-3 font-semibold" style="border-radius:0 0 0 8px; border:1px solid #22C55E33; border-right:none; border-top:none;">
+                XGBoost v2 <span class="tag green ml-2">enriquecido</span>
+              </td>
+              <td class="px-4 py-3 text-right font-mono" style="border-top:none; border-bottom:1px solid #22C55E33;">0.7114</td>
+              <td class="px-4 py-3 text-right font-mono" style="border-top:none; border-bottom:1px solid #22C55E33;">0.9028</td>
+              <td class="px-4 py-3 text-right font-mono text-accent font-semibold" style="border-radius:0 0 8px 0; border:1px solid #22C55E33; border-left:none; border-top:none;">
+                0.8961 ✓
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Hallazgo concept drift -->
+      <div class="reveal metric-card" style="border-color:#F59E0B30; background:linear-gradient(135deg,#1a150a,#131929)">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1" style="background:#2a1e07; border:1px solid #F59E0B40;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div>
+            <h3 class="font-serif text-xl font-semibold mb-2" style="color:#F59E0B">Hallazgo Crítico: Deriva del Concepto</h3>
+            <p class="text-subtle text-sm leading-relaxed mb-3">
+              La validación con 223.621 facturas (ago–dic 2025) reveló una degradación del <strong class="text-text">20.1% en F1-Score</strong>.
+              La proporción de glosas saltó del 40.2% al 67.5% — un cambio regulatorio no visto durante el entrenamiento.
+            </p>
+            <p class="text-subtle text-sm"><strong class="text-text">Implicación:</strong> Un modelo de ML en producción no es un artefacto estático. Requiere monitoreo continuo y reentrenamiento periódico — ambos ya implementados.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ EXPLICABILIDAD SHAP -->
+  <section class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="tag mb-4 inline-block">Capítulo 4 · Explicabilidad</span>
+        <h2 class="font-serif text-4xl md:text-5xl font-semibold mb-4">No es una caja negra.</h2>
+        <p class="text-subtle text-lg max-w-2xl mx-auto">
+          Cada predicción viene con una explicación SHAP que el auditor puede leer y validar.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="reveal">
+          <h3 class="font-serif text-2xl font-semibold mb-4">Variables más influyentes</h3>
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-text">Riesgo compuesto <span class="text-subtle font-mono text-xs">(valor × tasa_glosa)</span></span>
+                <span class="text-accent font-mono">+0.42</span>
+              </div>
+              <div class="h-2 rounded-full bg-muted overflow-hidden">
+                <div class="h-full rounded-full" style="width:84%; background:linear-gradient(90deg,#22C55E,#16A34A)"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-text">Ítems con autorización</span>
+                <span class="text-accent font-mono">+0.31</span>
+              </div>
+              <div class="h-2 rounded-full bg-muted overflow-hidden">
+                <div class="h-full rounded-full" style="width:62%; background:linear-gradient(90deg,#22C55E,#16A34A)"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-text">Diversidad diagnóstica</span>
+                <span class="text-blue font-mono">+0.24</span>
+              </div>
+              <div class="h-2 rounded-full bg-muted overflow-hidden">
+                <div class="h-full rounded-full" style="width:48%; background:linear-gradient(90deg,#3B82F6,#2563EB)"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-text">Tasa histórica del prestador</span>
+                <span class="text-blue font-mono">+0.19</span>
+              </div>
+              <div class="h-2 rounded-full bg-muted overflow-hidden">
+                <div class="h-full rounded-full" style="width:38%; background:linear-gradient(90deg,#6366F1,#4F46E5)"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-text">Días hasta radicación</span>
+                <span class="text-subtle font-mono">−0.11</span>
+              </div>
+              <div class="h-2 rounded-full bg-muted overflow-hidden">
+                <div class="h-full rounded-full" style="width:22%; background:linear-gradient(90deg,#475569,#334155)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal" style="transition-delay:0.15s">
+          <h3 class="font-serif text-2xl font-semibold mb-4">Ejemplo de explicación individual</h3>
+          <div class="code-block p-4">
+            <p><span class="cm">// Factura #847291 — Predicción: GLOSADA (87.3%)</span></p>
+            <br/>
+            <p><span class="kw">Factores que aumentan el riesgo:</span></p>
+            <p>  <span class="str">log_valor_x_tasa_glosa</span> <span class="num">+0.38</span></p>
+            <p>  <span class="cm">→ Valor $4.2M × tasa prestador 68%</span></p>
+            <br/>
+            <p>  <span class="str">tiene_autorizacion_items</span> <span class="num">+0.29</span></p>
+            <p>  <span class="cm">→ 3 de 5 servicios requieren auth. previa</span></p>
+            <br/>
+            <p><span class="kw">Factores que reducen el riesgo:</span></p>
+            <p>  <span class="str">dias_hasta_radicacion</span> <span class="num">−0.09</span></p>
+            <p>  <span class="cm">→ Radicada dentro del plazo normal</span></p>
+          </div>
+          <p class="text-subtle text-xs mt-3">El auditor ve exactamente por qué el modelo sospecha de esta factura — y puede validar o desestimar la alerta.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ ARQUITECTURA -->
+  <section id="arquitectura" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="tag mb-4 inline-block">Capítulo 5 · Arquitectura Técnica</span>
+        <h2 class="font-serif text-4xl md:text-5xl font-semibold mb-4">100% local. 100% explicable.</h2>
+        <p class="text-subtle text-lg max-w-2xl mx-auto">
+          Cumplimiento total de la Ley 1581 — ningún dato clínico sale de la infraestructura de Savia Salud.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="reveal space-y-4">
+          <div class="metric-card">
+            <p class="font-mono text-xs text-subtle mb-2">STACK ML</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="tag green">XGBoost</span>
+              <span class="tag">Sentence Transformers</span>
+              <span class="tag">spaCy es_core_news_md</span>
+              <span class="tag">SHAP</span>
+              <span class="tag">scikit-learn</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <p class="font-mono text-xs text-subtle mb-2">STACK API & INFRA</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="tag green">FastAPI</span>
+              <span class="tag">Pydantic v2</span>
+              <span class="tag">Docker</span>
+              <span class="tag">AWS ECS Fargate</span>
+              <span class="tag">AWS Lambda</span>
+              <span class="tag">S3 · RDS</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <p class="font-mono text-xs text-subtle mb-2">CALIDAD</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="tag">380 tests</span>
+              <span class="tag green">83.24% cobertura</span>
+              <span class="tag">Hypothesis property tests</span>
+              <span class="tag">CI/CD GitHub Actions</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal" style="transition-delay:0.15s">
+          <div class="code-block p-5 h-full">
+            <p class="text-subtle font-mono text-xs mb-3">API Response · /predict</p>
+            <p><span class="str">"factura_id"</span>: <span class="num">847291</span>,</p>
+            <p><span class="str">"clase_predicha"</span>: <span class="str">"Glosada"</span>,</p>
+            <p><span class="str">"probabilidades"</span>: {</p>
+            <p>  <span class="str">"Auditada"</span>: <span class="num">0.089</span>,</p>
+            <p>  <span class="str">"Glosada"</span>:  <span class="num">0.873</span>,</p>
+            <p>  <span class="str">"Devuelta"</span>: <span class="num">0.038</span></p>
+            <p>},</p>
+            <p><span class="str">"shap_explanation"</span>: {</p>
+            <p>  <span class="str">"top_features"</span>: [</p>
+            <p>    {<span class="str">"feature"</span>: <span class="str">"log_valor_x_tasa_glosa"</span>,</p>
+            <p>     <span class="str">"shap_value"</span>: <span class="num">0.381</span>},</p>
+            <p>    ...</p>
+            <p>  ]</p>
+            <p>},</p>
+            <p><span class="str">"latency_ms"</span>: <span class="num">18</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ FUTURO -->
+  <section id="futuro" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="reveal text-center mb-16">
+        <span class="tag mb-4 inline-block">Capítulo 6 · Interfaz del Futuro</span>
+        <h2 class="font-serif text-4xl md:text-5xl font-semibold mb-4">Así verá el auditor<br/>del futuro su trabajo.</h2>
+        <p class="text-subtle text-lg max-w-2xl mx-auto">
+          Una interfaz de triaje inteligente que transforma 600.000 facturas en decisiones priorizadas — en segundos.
+        </p>
+      </div>
+
+      <!-- Mockup dashboard del futuro -->
+      <div class="reveal future-card mb-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <p class="font-mono text-xs text-subtle mb-1">SISTEMA DE TRIAJE · Savia Salud EPS</p>
+            <h3 class="font-serif text-2xl font-semibold">Cola de Auditoría · Hoy</h3>
+          </div>
+          <div class="flex gap-2">
+            <span class="tag green">Sistema activo</span>
+            <span class="tag">18 ms / predicción</span>
+          </div>
+        </div>
+
+        <!-- Mini dashboard -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="text-center p-4 rounded-lg" style="background:#0a1a10; border:1px solid #22C55E20;">
+            <p class="font-mono text-2xl text-accent font-medium">1,247</p>
+            <p class="text-subtle text-xs mt-1">Auditadas automático</p>
+          </div>
+          <div class="text-center p-4 rounded-lg" style="background:#1a0a0a; border:1px solid #EF444420;">
+            <p class="font-mono text-2xl font-medium" style="color:#EF4444">342</p>
+            <p class="text-subtle text-xs mt-1">Requieren revisión urgente</p>
+          </div>
+          <div class="text-center p-4 rounded-lg" style="background:#1a140a; border:1px solid #F59E0B20;">
+            <p class="font-mono text-2xl font-medium" style="color:#F59E0B">89</p>
+            <p class="text-subtle text-xs mt-1">Devueltas a prestador</p>
+          </div>
+        </div>
+
+        <!-- Fake invoice rows -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between px-4 py-3 rounded-lg text-sm" style="background:#0E1223; border:1px solid #EF444430;">
+            <span class="font-mono text-subtle">#847291</span>
+            <span class="text-text">Clínica Las Américas · $4.2M</span>
+            <span class="tag" style="border-color:#EF444440; color:#EF4444; background:#1a0a0a;">GLOSADA 87%</span>
+            <span class="tag">SHAP disponible</span>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3 rounded-lg text-sm" style="background:#0E1223; border:1px solid #EF444420;">
+            <span class="font-mono text-subtle">#847288</span>
+            <span class="text-text">IPS Norte · $2.8M</span>
+            <span class="tag" style="border-color:#EF444430; color:#EF4444; background:#1a0a0a;">GLOSADA 71%</span>
+            <span class="tag">SHAP disponible</span>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3 rounded-lg text-sm" style="background:#0E1223; border:1px solid #22C55E10;">
+            <span class="font-mono text-subtle">#847301</span>
+            <span class="text-text">Hospital San Vicente · $890K</span>
+            <span class="tag green">AUDITADA 94%</span>
+            <span class="tag">Auto-aprobada</span>
+          </div>
+        </div>
+
+        <p class="text-subtle text-xs mt-4 text-center">* Mockup representativo de la interfaz propuesta</p>
+      </div>
+
+      <!-- Próximos pasos -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="metric-card reveal">
+          <h3 class="font-serif text-xl font-semibold mb-3">Próximos pasos</h3>
+          <ul class="space-y-2 text-sm text-subtle">
+            <li class="flex items-start gap-2"><span class="text-accent mt-1">→</span> Piloto controlado en Savia Salud EPS</li>
+            <li class="flex items-start gap-2"><span class="text-accent mt-1">→</span> Integración con MUV (validación en tiempo real)</li>
+            <li class="flex items-start gap-2"><span class="text-accent mt-1">→</span> Reentrenamiento trimestral automatizado</li>
+            <li class="flex items-start gap-2"><span class="text-accent mt-1">→</span> Extensión a predicción de monto de glosa</li>
+          </ul>
+        </div>
+        <div class="metric-card reveal" style="transition-delay:0.1s">
+          <h3 class="font-serif text-xl font-semibold mb-3">Impacto esperado</h3>
+          <ul class="space-y-2 text-sm text-subtle">
+            <li class="flex items-start gap-2"><span class="text-blue mt-1">→</span> <span><strong class="text-text">−80% carga</strong> manual de auditores</span></li>
+            <li class="flex items-start gap-2"><span class="text-blue mt-1">→</span> <span>Rezago: de 90 días a <strong class="text-text">&lt;1 día</strong></span></li>
+            <li class="flex items-start gap-2"><span class="text-blue mt-1">→</span> <span><strong class="text-text">89.6%</strong> de glosas detectadas automáticamente</span></li>
+            <li class="flex items-start gap-2"><span class="text-blue mt-1">→</span> <span>Tasa de error <strong class="text-text">cuantificada</strong> y auditable</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ VIDEO -->
+  <section id="video" class="py-24 px-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="reveal text-center mb-12">
+        <span class="tag mb-4 inline-block">Video explicativo · Próximamente</span>
+        <h2 class="font-serif text-4xl md:text-5xl font-semibold mb-4">El proyecto en 5 minutos.</h2>
+        <p class="text-subtle text-lg max-w-xl mx-auto">
+          Una explicación visual del problema, la solución y el impacto — para cualquier audiencia.
+        </p>
+      </div>
+
+      <div class="reveal video-placeholder">
+        <div class="play-btn" onclick="alert('Video próximamente disponible')">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#020617"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <p class="font-serif text-xl text-subtle">Video en producción</p>
+        <p class="text-subtle text-sm max-w-sm text-center">
+          Demostración del flujo completo: desde una factura XML hasta la explicación SHAP para el auditor.
+        </p>
+        <div class="flex gap-3 mt-2">
+          <span class="tag">Duración: ~5 min</span>
+          <span class="tag">Audiencia: no técnica</span>
+          <span class="tag">Español</span>
+        </div>
+      </div>
+
+      <!-- Script outline del video -->
+      <div class="reveal mt-8 metric-card">
+        <p class="font-mono text-xs text-subtle mb-4">ESTRUCTURA DEL VIDEO (guión base)</p>
+        <div class="grid md:grid-cols-4 gap-4 text-sm">
+          <div class="text-center">
+            <p class="font-mono text-accent mb-1">0:00 – 0:45</p>
+            <p class="font-serif text-base font-semibold mb-1">El Problema</p>
+            <p class="text-subtle text-xs">90 días de rezago. 600K facturas. El costo de no detectar una glosa.</p>
+          </div>
+          <div class="text-center">
+            <p class="font-mono text-accent mb-1">0:45 – 2:00</p>
+            <p class="font-serif text-base font-semibold mb-1">La Solución</p>
+            <p class="text-subtle text-xs">Demo del modelo prediciendo en tiempo real sobre una factura real.</p>
+          </div>
+          <div class="text-center">
+            <p class="font-mono text-accent mb-1">2:00 – 3:30</p>
+            <p class="font-serif text-base font-semibold mb-1">Los Resultados</p>
+            <p class="text-subtle text-xs">Comparativa v1 vs v2. Recall 72% → 89%. Concept drift.</p>
+          </div>
+          <div class="text-center">
+            <p class="font-mono text-accent mb-1">3:30 – 5:00</p>
+            <p class="font-serif text-base font-semibold mb-1">El Futuro</p>
+            <p class="text-subtle text-xs">Mockup de interfaz. Piloto en Savia Salud. Recomendaciones.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ FOOTER -->
+  <footer class="py-16 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="grid md:grid-cols-3 gap-8 mb-12">
+        <div>
+          <h4 class="font-serif text-lg font-semibold mb-3">El proyecto</h4>
+          <ul class="space-y-2 text-subtle text-sm">
+            <li><a href="#problema" class="hover:text-text transition-colors">El problema</a></li>
+            <li><a href="#solucion" class="hover:text-text transition-colors">La solución</a></li>
+            <li><a href="#resultados" class="hover:text-text transition-colors">Resultados</a></li>
+            <li><a href="#arquitectura" class="hover:text-text transition-colors">Arquitectura</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-serif text-lg font-semibold mb-3">Tecnologías</h4>
+          <div class="flex flex-wrap gap-2">
+            <span class="tag">Python</span>
+            <span class="tag">XGBoost</span>
+            <span class="tag">FastAPI</span>
+            <span class="tag">SHAP</span>
+            <span class="tag">AWS</span>
+            <span class="tag">Docker</span>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-serif text-lg font-semibold mb-3">Autor</h4>
+          <p class="text-subtle text-sm leading-relaxed">
+            <strong class="text-text">Juan Felipe Cardona Arango</strong><br/>
+            Maestría en Ciencia de Datos<br/>
+            Universidad EAFIT · 2026<br/>
+            Savia Salud EPS
+          </p>
+        </div>
+      </div>
+
+      <div class="section-divider mb-8"></div>
+
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-subtle text-sm">
+        <p>Trabajo de grado · Universidad EAFIT · Maestría en Ciencia de Datos · 2026</p>
+        <p class="font-mono text-xs">Recall Glosada: <span class="text-accent">0.8961</span> · AUC-ROC: <span class="text-blue">0.9028</span> · Tests: <span style="color:#F59E0B">380</span></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scroll reveal JS -->
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
