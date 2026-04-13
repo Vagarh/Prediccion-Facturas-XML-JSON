@@ -204,3 +204,40 @@ def pytest_configure(config):
     # Load profile based on environment
     profile = "ci" if os.getenv("CI") else "dev"
     settings.load_profile(profile)
+
+
+# ---------------------------------------------------------------------------
+# spaCy mock — evita cargar es_core_news_md en tests unitarios
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(autouse=True)
+def mock_spacy_model_if_not_installed():
+    """Mockea spacy.load si es_core_news_md no está instalado.
+
+    Permite que los tests unitarios corran sin el modelo spaCy instalado.
+    Los tests de integración que necesiten el modelo real deben marcarse
+    con @pytest.mark.integration.
+    """
+    import importlib
+    try:
+        import spacy
+        spacy.load("es_core_news_md")
+        # Modelo disponible — no mockear
+        yield
+    except OSError:
+        # Modelo no disponible — mockear el singleton
+        import src.nlp.pipeline as nlp_module
+        from unittest.mock import Mock, patch
+
+        mock_nlp = Mock()
+        mock_doc = Mock()
+        mock_doc.__iter__ = Mock(return_value=iter([]))
+        mock_nlp.return_value = mock_doc
+
+        original_instance = nlp_module._nlp_instance
+
+        with patch('spacy.load', return_value=mock_nlp):
+            nlp_module._nlp_instance = None
+            yield
+            nlp_module._nlp_instance = original_instance

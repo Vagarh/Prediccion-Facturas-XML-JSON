@@ -345,19 +345,19 @@ class TestEmbeddingPipeline:
 
     def test_load_embeddings_with_nonexistent_key_raises_error(self):
         """Test que load_embeddings lanza error con clave inexistente."""
+        import gc
         embeddings = np.random.randn(10, EMBEDDING_DIM).astype(np.float32)
         
         with tempfile.TemporaryDirectory() as temp_dir:
             file_path = Path(temp_dir) / "test_key_error"
-            
-            # Guardar con clave por defecto
             save_embeddings(embeddings, file_path)
             
-            # Intentar cargar con clave inexistente
             with pytest.raises(KeyError) as exc_info:
                 load_embeddings(file_path, key="nonexistent_key")
             
-            assert "nonexistent_key" in str(exc_info.value)
+            gc.collect()  # Forzar cierre de archivos en Windows
+        
+        assert "nonexistent_key" in str(exc_info.value)
 
     def test_save_embeddings_creates_parent_directories(self):
         """Test que save_embeddings crea directorios padre si no existen."""
@@ -401,13 +401,8 @@ class TestEmbeddingPipeline:
         enrich_features(numeric_features, text_fields, mock_embedding_service, mock_nlp_pipeline)
         
         # Verificar que se llamó encode para cada campo en el orden de TEXT_FIELD_KEYS
-        expected_calls = [
-            (("diabetes",),),
-            (("consulta",),),
-            (("estable",),)
-        ]
-        
-        actual_calls = [call.args for call in mock_embedding_service.encode.call_args_list]
+        actual_calls = [call.args[0] for call in mock_embedding_service.encode.call_args_list]
+        expected_calls = ["diabetes", "consulta", "estable"]
         assert actual_calls == expected_calls
 
     def test_generate_split_embeddings_with_empty_dataframe(self):

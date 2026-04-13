@@ -271,9 +271,12 @@ def load_embeddings(path: Path | str, key: str = "embeddings") -> np.ndarray:
 
     data = np.load(str(npz_path))
     if key not in data:
-        raise KeyError(f"Clave '{key}' no encontrada en {npz_path}. Claves disponibles: {list(data.keys())}")
+        available = list(data.keys())
+        data.close()
+        raise KeyError(f"Clave '{key}' no encontrada en {npz_path}. Claves disponibles: {available}")
 
-    embeddings = data[key]
+    embeddings = data[key].copy()  # Copiar para poder cerrar el archivo sin perder los datos
+    data.close()
     logger.info(
         "load_embeddings: embeddings de shape %s cargados desde '%s'.",
         embeddings.shape,

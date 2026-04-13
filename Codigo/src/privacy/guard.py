@@ -78,8 +78,9 @@ class PrivacyGuard:
 
         if host not in _LOCAL_HOSTS:
             msg = (
-                f"Violación de privacidad (Ley 1581): OLLAMA_BASE_URL apunta a host "
-                f"externo '{host}'. Solo se permiten hosts locales: {_LOCAL_HOSTS}. "
+                f"Violación de privacidad (Ley 1581): host externo detectado '{host}'. "
+                f"OLLAMA_BASE_URL apunta a host externo. "
+                f"Solo se permiten hosts locales: {_LOCAL_HOSTS}. "
                 f"URL configurada: '{self.ollama_base_url}'"
             )
             logger.error(msg)
@@ -105,7 +106,7 @@ class PrivacyGuard:
         """
         url = f"{self.ollama_base_url}/api/tags"
         try:
-            response = requests.get(url, timeout=2.0)
+            response = requests.get(url, timeout=5)
             available = response.status_code == 200
             if available:
                 logger.debug("check_ollama_available: servidor disponible en '%s'", url)
@@ -141,7 +142,5 @@ class PrivacyGuard:
             >>> guard.log_inference("llama3.2", "abc123def456")
         """
         logger.info(
-            "LLM inference | model='%s' | input_hash='%s'",
-            model,
-            input_hash,
+            "LLM inference | model='%s' | input_hash='%s'" % (model, input_hash),
         )

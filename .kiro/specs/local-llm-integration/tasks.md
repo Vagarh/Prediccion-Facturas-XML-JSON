@@ -72,7 +72,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - **Propiedad 2: Dimensión fija de embeddings**
     - Para cualquier texto no nulo, `len(service.encode(text)) == EMBEDDING_DIM`
     - **Valida: Requisito 2.1**
-  - [ ] 4.3 Escribir property test para null-handling
+  - [x] 4.3 Escribir property test para null-handling
     - **Propiedad 3: Vector cero para inputs nulos**
     - `service.encode(None)` y `service.encode("")` producen `np.zeros(EMBEDDING_DIM)`
     - **Valida: Requisito 2.4**
@@ -98,11 +98,11 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Serialización de embeddings en formato NPZ con `np.savez_compressed`
     - `RANDOM_STATE = 42` en cualquier operación con aleatoriedad
     - _Requisitos: 2.2, 2.5, 2.6, 8.1, 8.3, 8.4_
-  - [ ] 6.2 Escribir property test para Feature Pipeline
+  - [x] 6.2 Escribir property test para Feature Pipeline
     - **Propiedad 4: Dimensión del vector enriquecido**
     - `len(enrich_features(...)) == 48 + EMBEDDING_DIM * n_text_fields`
     - **Valida: Requisito 2.2**
-  - [ ] 6.3 Escribir property test para preservación de split temporal
+  - [x] 6.3 Escribir property test para preservación de split temporal
     - **Propiedad 5: No data leakage temporal**
     - Los embeddings generados para el conjunto de test no contienen información
       de registros con `fecha_radicacion` anterior al corte de test
@@ -129,7 +129,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
       documentar y recomendar continuar con pipeline base
     - Serializar reporte en `Codigo/reports/llm_evaluation_{DATE_PREFIX}.json`
     - _Requisitos: 3.1, 3.2, 3.4, 3.5, 3.6, 6.1–6.7_
-  - [-] 7.2 Implementar reentrenamiento XGBoost con features enriquecidas
+  - [x] 7.2 Implementar reentrenamiento XGBoost con features enriquecidas
     - Script `Codigo/src/evaluation/retrain_xgboost.py` que:
       carga train/val/test parquet, genera embeddings con `EmbeddingService`,
       concatena al vector de 48 features, reentrena XGBoost con `RANDOM_STATE = 42`,
@@ -142,8 +142,8 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Verificar que el resultado negativo se documenta correctamente
     - _Requisitos: 3.5, 3.6_
 
-- [ ] 8. Generador de Explicaciones
-  - [ ] 8.1 Implementar `Codigo/src/explainability/explanation_generator.py`
+- [x] 8. Generador de Explicaciones
+  - [x] 8.1 Implementar `Codigo/src/explainability/explanation_generator.py`
     - Clase `ExplanationGenerator` con `__init__(privacy_guard: PrivacyGuard,
       llm_model: str, timeout_s: float = EXPLANATION_MAX_SECONDS)`
     - Método `generate(prediction: int, confidence: float,
@@ -156,20 +156,20 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Verificar que la generación completa en < `EXPLANATION_MAX_SECONDS` (p95)
     - Usar `logging`, type hints y docstrings Google-style
     - _Requisitos: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
-  - [ ] 8.2 Escribir property test para Explanation Generator
+  - [x] 8.2 Escribir property test para Explanation Generator
     - **Propiedad 6: Degradación graciosa siempre retorna string no vacío**
     - Para cualquier combinación de predicción/SHAP values, `generate(...)` retorna
       `str` no vacío incluso cuando Ollama no está disponible
     - **Valida: Requisito 4.5**
-  - [ ] 8.3 Escribir tests unitarios para ExplanationGenerator
+  - [x] 8.3 Escribir tests unitarios para ExplanationGenerator
     - Verificar que la narrativa para clase Glosada/Devuelta incluye al menos un
       causal de Res. 2284 (SO0101, SO0201, FA0101, FA0301, TA0101, DE16, DE01)
     - Verificar que la narrativa no contiene términos técnicos de ML
     - Verificar que el fallback SHAP se activa cuando Ollama no responde
     - _Requisitos: 4.3, 4.4, 4.5_
 
-- [ ] 9. Monitoreo de Concept Drift con PSI
-  - [ ] 9.1 Implementar `Codigo/src/monitoring/drift_detector.py`
+- [x] 9. Monitoreo de Concept Drift con PSI
+  - [x] 9.1 Implementar `Codigo/src/monitoring/drift_detector.py`
     - Función `compute_psi(reference: np.ndarray, current: np.ndarray,
       n_bins: int = 10) -> float` que calcula Population Stability Index
     - Función `compute_embedding_psi(ref_embeddings: np.ndarray,
@@ -178,17 +178,17 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Función `check_drift(psi_value: float) -> str` que retorna `"stable"`,
       `"warning"` (PSI > 0.15) o `"alert"` (PSI > 0.20)
     - _Requisitos: 7.1, 7.3, 7.4_
-  - [ ] 9.2 Escribir property test para PSI
+  - [x] 9.2 Escribir property test para PSI
     - **Propiedad 7: PSI es cero para distribuciones idénticas**
     - `compute_psi(arr, arr) == 0.0` para cualquier array de referencia
     - **Valida: Requisito 7.3**
-  - [ ] 9.3 Escribir tests unitarios para drift_detector
+  - [x] 9.3 Escribir tests unitarios para drift_detector
     - Verificar que PSI > 0.20 activa nivel `"alert"`
     - Verificar que distribuciones idénticas producen PSI ≈ 0
     - _Requisitos: 7.3, 7.4_
 
-- [ ] 10. Integración con la API FastAPI
-  - [ ] 10.1 Extender schemas en `Codigo/src/api/schemas.py`
+- [x] 10. Integración con la API FastAPI
+  - [x] 10.1 Extender schemas en `Codigo/src/api/schemas.py`
     - Agregar campos opcionales a `PredictionRequest`:
       `diagnostico_texto: str | None = None`,
       `cups_texto: str | None = None`,
@@ -202,7 +202,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
       `latency_p95_ms: float | None`
     - No modificar campos existentes (compatibilidad hacia atrás)
     - _Requisitos: 5.1, 5.2, 5.5, 5.6, 7.4_
-  - [ ] 10.2 Extender `Codigo/src/api/main.py`
+  - [x] 10.2 Extender `Codigo/src/api/main.py`
     - Inicializar `PrivacyGuard`, `EmbeddingService`, `ExplanationGenerator` y
       `DriftDetector` en el lifespan; retornar HTTP 503 si Ollama no disponible
       sin degradar el endpoint XGBoost base
@@ -211,7 +211,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Agregar `GET /v1/llm/status` que retorna `LLMStatusResponse`
     - Incluir `drift_warning` en response cuando PSI de embeddings > 0.20
     - _Requisitos: 1.4, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 7.4_
-  - [ ] 10.3 Escribir tests de integración para nuevos endpoints
+  - [x] 10.3 Escribir tests de integración para nuevos endpoints
     - Verificar que `POST /v1/predict` sin campos textuales retorna response idéntico
       al comportamiento actual (compatibilidad hacia atrás)
     - Verificar que `GET /v1/llm/status` retorna 200 con schema correcto
@@ -223,20 +223,20 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     y verificar que la cobertura total es ≥ 80% y que los 147 tests existentes
     siguen pasando. Consultar al usuario si hay dudas.
 
-- [ ] 12. Reproducibilidad y artefactos experimentales
-  - [ ] 12.1 Implementar `Codigo/src/evaluation/experiment_logger.py`
+- [x] 12. Reproducibilidad y artefactos experimentales
+  - [x] 12.1 Implementar `Codigo/src/evaluation/experiment_logger.py`
     - Clase `ExperimentLogger` con método `log_run(model_name: str,
       hyperparams: dict, metrics: dict) -> None` que escribe en
       `Codigo/reports/experiment_log_{DATE_PREFIX}.json` en formato JSON Lines
     - Incluir: timestamp ISO-8601, versión del modelo LLM, hiperparámetros,
       métricas completas (F1-macro, Recall Glosada, AUC-ROC, Matriz de Confusión)
     - _Requisitos: 8.2, 8.5_
-  - [ ] 12.2 Verificar determinismo del pipeline completo
+  - [x] 12.2 Verificar determinismo del pipeline completo
     - Agregar test que ejecuta el pipeline de evaluación dos veces con los mismos
       datos y verifica que las métricas son idénticas (`RANDOM_STATE = 42`,
       división temporal fija)
     - _Requisitos: 8.5_
-  - [ ] 12.3 Escribir property test para ExperimentLogger
+  - [x] 12.3 Escribir property test para ExperimentLogger
     - **Propiedad 8: Idempotencia de serialización JSON**
     - Serializar y deserializar un `dict` de métricas produce el mismo `dict`
     - **Valida: Requisito 8.2**
@@ -245,8 +245,8 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
   - Ejecutar `pytest Codigo/tests/ -v --tb=short` y confirmar suite completa verde.
     Verificar cobertura ≥ 80%. Consultar al usuario si hay dudas.
 
-- [ ] 14. Sistema de Reentrenamiento Automático y Monitoreo
-  - [ ] 14.1 Implementar `Codigo/src/training/retraining_scheduler.py`
+- [-] 14. Sistema de Reentrenamiento Automático y Monitoreo
+  - [x] 14.1 Implementar `Codigo/src/training/retraining_scheduler.py`
     - Clase `RetrainingScheduler` con método `check_drift_and_retrain()` que:
       evalúa PSI mensual, detecta concept drift, y activa reentrenamiento automático
     - Método `schedule_monthly_retrain()` que programa reentrenamiento cada mes
@@ -256,7 +256,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Método `validate_new_model()` que compara métricas nuevo vs actual
     - Usar `logging`, type hints, docstrings Google-style, `RANDOM_STATE = 42`
     - _Requisitos: 7.1, 7.2, 8.1, 8.5_
-  - [ ] 14.2 Implementar `Codigo/src/monitoring/model_monitor.py`
+  - [x] 14.2 Implementar `Codigo/src/monitoring/model_monitor.py`
     - Clase `ModelMonitor` con método `track_performance(predictions, actuals)` que:
       almacena métricas diarias en base de datos local (SQLite)
     - Método `generate_monthly_report()` que produce reporte de degradación
@@ -265,14 +265,14 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Método `get_model_metrics_history()` que retorna histórico de métricas
     - Dashboard de métricas con tendencias temporales y alertas
     - _Requisitos: 6.4, 7.3, 7.4_
-  - [ ] 14.3 Integración con API FastAPI para reentrenamiento
+  - [x] 14.3 Integración con API FastAPI para reentrenamiento
     - Agregar endpoint `POST /v1/admin/retrain` que activa reentrenamiento manual
     - Agregar endpoint `GET /v1/admin/model/metrics` que retorna métricas actuales
     - Agregar endpoint `GET /v1/admin/drift/status` que retorna estado de drift
     - Agregar endpoint `POST /v1/admin/model/rollback` que revierte a modelo anterior
     - Autenticación básica para endpoints administrativos
     - _Requisitos: 5.1, 5.5, 7.4_
-  - [ ] 14.4 Base de datos de métricas y versionado de modelos
+  - [x] 14.4 Base de datos de métricas y versionado de modelos
     - Crear `Codigo/src/storage/model_registry.py` con:
       registro de versiones de modelos, métricas por versión, timestamps
     - Esquema SQLite para almacenar: model_id, version, metrics, created_at, is_active
@@ -280,7 +280,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Función `load_model_version(version: str)` que carga modelo específico
     - Función `list_model_versions()` que retorna histórico de versiones
     - _Requisitos: 8.2, 8.4, 8.5_
-  - [ ] 14.5 Cron job y automatización
+  - [x] 14.5 Cron job y automatización
     - Script `Codigo/scripts/monthly_retrain.py` para ejecución programada
     - Configuración de cron job que ejecuta reentrenamiento primer día de cada mes
     - Notificaciones por email/Slack cuando reentrenamiento completa
@@ -295,8 +295,8 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Logs de reentrenamiento y alertas de sistema
     - _Requisitos: 6.4, 7.4, UX administrativa_
 
-- [ ] 15. Demo MVP con Interfaz Gráfica Atractiva
-  - [ ] 15.1 Implementar interfaz web con Streamlit
+- [x] 15. Demo MVP con Interfaz Gráfica Atractiva
+  - [x] 15.1 Implementar interfaz web con Streamlit
     - Crear `Codigo/demo/streamlit_app.py` con interfaz moderna y atractiva
     - Diseño responsive con sidebar para configuración y área principal para resultados
     - Tema oscuro/claro configurable, colores corporativos de Savia Salud EPS
@@ -304,14 +304,14 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - Métricas en tiempo real: latencia, confianza, drift warnings
     - **Integración con sistema de reentrenamiento:** Mostrar versión del modelo activo
     - _Requisitos: 5.1, 5.2, 4.1, 4.2_
-  - [ ] 15.2 Integración con pipeline completo
+  - [x] 15.2 Integración con pipeline completo
     - Conectar con API FastAPI existente o directamente con modelos
     - Carga de modelos XGBoost base y enriquecido (si disponible)
     - Inicialización de EmbeddingService, PrivacyGuard y ExplanationGenerator
     - **Mostrar información de modelo:** Versión, fecha de entrenamiento, métricas
     - Manejo de errores gracioso con mensajes informativos para el usuario
     - _Requisitos: 1.4, 2.1, 4.5_
-  - [ ] 15.3 Funcionalidades de demostración
+  - [x] 15.3 Funcionalidades de demostración
     - **Entrada de datos:** Formulario intuitivo para ingresar datos de factura
       (48 features numéricas + campos textuales opcionales)
     - **Predicción comparativa:** Mostrar lado a lado resultados del modelo base vs enriquecido
@@ -320,14 +320,14 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - **Estado del sistema:** Panel de monitoreo con estado de Ollama, latencias, drift warnings
     - **Métricas del modelo:** Mostrar F1-macro, Recall Glosada, fecha de último reentrenamiento
     - _Requisitos: 3.1, 4.1, 4.2, 7.4_
-  - [ ] 15.4 Elementos visuales atractivos
+  - [x] 15.4 Elementos visuales atractivos
     - **Dashboard moderno:** Cards con métricas, progress bars, indicadores de estado
     - **Gráficos interactivos:** Plotly para visualizaciones dinámicas (SHAP, embeddings, métricas)
     - **Animaciones sutiles:** Transiciones suaves, loading spinners, efectos hover
     - **Iconografía médica:** Iconos relacionados con auditoría, salud, análisis
     - **Paleta de colores:** Verde/azul corporativo con acentos para alertas y éxitos
     - _Requisitos: UX/UI atractiva_
-  - [ ] 15.5 Casos de uso demostrativos
+  - [x] 15.5 Casos de uso demostrativos
     - **Caso 1:** Factura típica sin campos textuales (modelo base)
     - **Caso 2:** Factura con diagnóstico CIE-10 complejo (enriquecimiento semántico)
     - **Caso 3:** Factura con observaciones clínicas detalladas (explicación enriquecida)
@@ -335,7 +335,7 @@ Ley 1581 de Colombia. Toda la infraestructura opera en local.
     - **Caso 5:** Comparación de versiones de modelo (antes/después de reentrenamiento)
     - Datos sintéticos realistas basados en patrones del dataset real
     - _Requisitos: 2.2, 4.3, 7.4_
-  - [ ] 15.6 Documentación y deployment del demo
+  - [x] 15.6 Documentación y deployment del demo
     - README específico para el demo en `Codigo/demo/README.md`
     - Instrucciones de instalación y ejecución paso a paso
     - Screenshots de la interfaz y casos de uso

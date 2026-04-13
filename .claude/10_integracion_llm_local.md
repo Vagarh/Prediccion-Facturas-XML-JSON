@@ -10,7 +10,7 @@
 1. **Enriquecimiento de features** con embeddings semánticos de campos textuales clínicos
 2. **Generación de explicaciones** en lenguaje natural contextualizadas con Resolución 2284/2023
 
-**Estado:** 54% completado (7/13 tareas principales)
+**Estado:** 69% completado (11/16 tareas principales)
 
 ---
 
@@ -59,21 +59,31 @@
 - **Candidatos:** Llama 3.2, Mistral 7B, Qwen2.5, Phi-3 Mini
 - **Lógica de resultado negativo:** Si ningún candidato supera baseline → recomendar pipeline base
 
-### Componentes Pendientes ⏳
-
-#### 6. ExplanationGenerator (`src/explainability/explanation_generator.py`)
+#### 6. ExplanationGenerator (`src/explainability/explanation_generator.py`) ✅
 - **Propósito:** Narrativas en lenguaje natural para auditores médicos
-- **Funcionalidad esperada:**
-  - Explicaciones en español contextualizadas con Res. 2284/2023
-  - Degradación graciosa si Ollama no disponible
-  - Evitar términos técnicos de ML ("SHAP", "embedding", "feature importance")
+- **Funciones:**
+  - `generate()`: Produce explicaciones contextualizadas con Res. 2284/2023
+  - `_generate_llm_explanation()`: Usa Ollama para narrativas enriquecidas
+  - `_generate_fallback_explanation()`: Explicaciones SHAP técnicas como fallback
+  - `_build_llm_prompt()`: Construye prompts contextualizados para LLM
+  - `test_generation()`: Prueba generación con datos sintéticos
+- **Degradación graciosa:** Fallback automático cuando Ollama no disponible
+- **Filtrado ML:** Evita términos técnicos ("SHAP", "embedding", "feature importance")
+- **Causales Res. 2284/2023:** Mapeo de features a causales específicos (SO0101, FA0101, etc.)
 
-#### 7. DriftDetector (`src/monitoring/drift_detector.py`)
+#### 7. DriftDetector (`src/monitoring/drift_detector.py`) ✅
 - **Propósito:** Monitoreo de concept drift con PSI
-- **Funcionalidad esperada:**
-  - `compute_psi()`: Population Stability Index
-  - `compute_embedding_psi()`: PSI por dimensión reducida (PCA)
-  - `check_drift()`: Niveles "stable", "warning", "alert"
+- **Funciones:**
+  - `compute_psi()`: Population Stability Index entre distribuciones
+  - `compute_embedding_psi()`: PSI para embeddings con reducción PCA
+  - `check_drift()`: Clasificación en niveles "stable", "warning", "alert"
+  - `detect_feature_drift()`: Análisis de drift en features numéricas
+  - `detect_embedding_drift()`: Análisis de drift en embeddings semánticos
+  - `detect_comprehensive_drift()`: Análisis completo con recomendaciones
+- **Umbrales configurables:** Warning (0.20) y Alert (0.15) por defecto
+- **Recomendaciones automáticas:** Basadas en nivel de drift detectado
+
+### Componentes Pendientes ⏳
 
 #### 8. Integración API FastAPI
 - **Extensión de schemas:** Campos textuales opcionales en `PredictionRequest`
@@ -180,34 +190,32 @@ ollama pull phi3
 
 ## PROGRESO ACTUAL
 
-### Tareas Completadas (7/16)
+### Tareas Completadas (11/16)
 1. ✅ Infraestructura y dependencias LLM local
-2. ✅ Privacy Guard (implementación)
-3. ✅ NLP Pipeline con spaCy (implementación)
-4. ✅ Embedding Service (implementación)
+2. ✅ Privacy Guard (implementación + tests)
+3. ✅ NLP Pipeline con spaCy (implementación + tests)
+4. ✅ Embedding Service (implementación + tests)
 5. ✅ Checkpoint intermedio (tests existentes pasan)
-6. ✅ Embedding Pipeline (implementación)
-7. ✅ LLM Evaluator (implementación)
+6. ✅ Embedding Pipeline (implementación + tests)
+7. ✅ LLM Evaluator (implementación + tests)
+8. ✅ Reentrenamiento XGBoost con features enriquecidas
+9. ✅ Generador de Explicaciones (implementación + tests)
+10. ✅ Monitoreo de Concept Drift con PSI (implementación + tests)
+11. ✅ Suite completa de property tests y tests unitarios
 
-### Tareas en Progreso (1/16)
-- 🔄 Reentrenamiento XGBoost con features enriquecidas
-
-### Tareas Pendientes (8/16)
-- Tests unitarios y property tests para componentes implementados
-- Generador de explicaciones en lenguaje natural
-- Monitoreo de concept drift con PSI
+### Tareas Pendientes (5/16)
 - Integración con API FastAPI
 - Artefactos experimentales y reproducibilidad
 - **Sistema de reentrenamiento automático y monitoreo continuo**
 - **Demo MVP con interfaz gráfica atractiva (Streamlit)**
+- Checkpoint final y verificación de cobertura
 
 ### Próximos Pasos Inmediatos
-1. Completar tests unitarios para PrivacyGuard, NLP Pipeline, EmbeddingService
-2. Finalizar script de reentrenamiento XGBoost
-3. Implementar ExplanationGenerator con degradación graciosa
-4. **Implementar sistema de reentrenamiento automático mensual**
-5. Extender API FastAPI manteniendo compatibilidad hacia atrás
-6. **Crear Demo MVP con interfaz gráfica atractiva usando Streamlit**
+1. **Integrar con API FastAPI:** Extender endpoints manteniendo compatibilidad hacia atrás
+2. **Implementar sistema de reentrenamiento automático mensual**
+3. **Crear Demo MVP con interfaz gráfica atractiva usando Streamlit**
+4. Implementar artefactos experimentales y logging de experimentos
+5. Checkpoint final con verificación de cobertura ≥ 80%
 
 ---
 

@@ -22,7 +22,7 @@ class TestEmbeddingService:
     def setup_method(self):
         """Configuración inicial para cada test."""
         # Mock del modelo SentenceTransformer para evitar carga real
-        with patch('sentence_transformers.SentenceTransformer') as mock_st:
+        with patch('src.embeddings.service.SentenceTransformer') as mock_st:
             mock_model = Mock()
             mock_model.encode.return_value = np.zeros(EMBEDDING_DIM, dtype=np.float32)
             mock_st.return_value = mock_model
@@ -32,7 +32,7 @@ class TestEmbeddingService:
                 random_state=RANDOM_STATE
             )
 
-    @patch('sentence_transformers.SentenceTransformer')
+    @patch('src.embeddings.service.SentenceTransformer')
     def test_embedding_service_initialization(self, mock_st):
         """Test que EmbeddingService se inicializa correctamente."""
         mock_model = Mock()
@@ -52,7 +52,7 @@ class TestEmbeddingService:
         """Test que encode() retorna vector de dimensión correcta."""
         # Mock del modelo para retornar vector de dimensión correcta
         mock_embedding = np.random.randn(EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = mock_embedding
+        self.service._model.encode.return_value = mock_embedding
         
         result = self.service.encode("texto de prueba")
         
@@ -68,7 +68,7 @@ class TestEmbeddingService:
         np.testing.assert_array_equal(result, expected)
         
         # Verificar que no se llamó al modelo
-        self.service.model.encode.assert_not_called()
+        self.service._model.encode.assert_not_called()
 
     def test_encode_with_empty_string_returns_zero_vector(self):
         """Test que encode("") retorna vector de ceros."""
@@ -78,7 +78,7 @@ class TestEmbeddingService:
         np.testing.assert_array_equal(result, expected)
         
         # Verificar que no se llamó al modelo
-        self.service.model.encode.assert_not_called()
+        self.service._model.encode.assert_not_called()
 
     @patch('src.embeddings.service.preprocess_text')
     def test_encode_with_whitespace_returns_zero_vector(self, mock_preprocess):
@@ -95,14 +95,14 @@ class TestEmbeddingService:
         mock_preprocess.assert_called_once_with("   \t\n   ")
         
         # Verificar que no se llamó al modelo
-        self.service.model.encode.assert_not_called()
+        self.service._model.encode.assert_not_called()
 
     @patch('src.embeddings.service.preprocess_text')
     def test_encode_calls_preprocess_text(self, mock_preprocess):
         """Test que encode() llama a preprocess_text."""
         mock_preprocess.return_value = "texto procesado"
         mock_embedding = np.random.randn(EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = mock_embedding
+        self.service._model.encode.return_value = mock_embedding
         
         self.service.encode("texto original")
         
@@ -110,7 +110,7 @@ class TestEmbeddingService:
         mock_preprocess.assert_called_once_with("texto original")
         
         # Verificar que se llamó al modelo con texto procesado
-        self.service.model.encode.assert_called_once_with("texto procesado")
+        self.service._model.encode.assert_called_once_with("texto procesado", convert_to_numpy=True)
 
     def test_encode_batch_returns_correct_shape(self):
         """Test que encode_batch() retorna forma correcta."""
@@ -118,7 +118,7 @@ class TestEmbeddingService:
         
         # Mock del modelo para retornar batch de embeddings
         mock_embeddings = np.random.randn(len(texts), EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = mock_embeddings
+        self.service._model.encode.return_value = mock_embeddings
         
         result = self.service.encode_batch(texts)
         
@@ -138,7 +138,7 @@ class TestEmbeddingService:
         
         # Mock encode_batch
         batch_embeddings = np.array(individual_embeddings)
-        self.service.model.encode.return_value = batch_embeddings
+        self.service._model.encode.return_value = batch_embeddings
         
         # Llamar encode_batch
         batch_result = self.service.encode_batch(texts)
@@ -147,7 +147,7 @@ class TestEmbeddingService:
         assert batch_result.shape == (len(texts), EMBEDDING_DIM)
         
         # Verificar que se llamó al modelo una sola vez con todos los textos
-        self.service.model.encode.assert_called_once()
+        self.service._model.encode.assert_called_once()
 
     def test_encode_batch_with_empty_list(self):
         """Test que encode_batch([]) retorna array vacío."""
@@ -163,7 +163,7 @@ class TestEmbeddingService:
         
         # Mock para textos válidos solamente
         valid_embeddings = np.random.randn(2, EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = valid_embeddings
+        self.service._model.encode.return_value = valid_embeddings
         
         result = self.service.encode_batch(texts)
         
@@ -182,7 +182,7 @@ class TestEmbeddingService:
         assert result.shape == (EMBEDDING_DIM,)
         assert result.dtype == np.float32
 
-    @patch('sentence_transformers.SentenceTransformer')
+    @patch('src.embeddings.service.SentenceTransformer')
     def test_model_singleton_behavior(self, mock_st):
         """Test que el modelo se carga una sola vez (singleton)."""
         mock_model = Mock()
@@ -212,7 +212,7 @@ class TestEmbeddingService:
         for text in test_cases:
             # Mock embedding diferente para cada caso
             mock_embedding = np.random.randn(EMBEDDING_DIM).astype(np.float32)
-            self.service.model.encode.return_value = mock_embedding
+            self.service._model.encode.return_value = mock_embedding
             
             result = self.service.encode(text)
             
@@ -223,7 +223,7 @@ class TestEmbeddingService:
     def test_encode_logs_operations(self, mock_logger):
         """Test que encode registra operaciones en logs."""
         mock_embedding = np.random.randn(EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = mock_embedding
+        self.service._model.encode.return_value = mock_embedding
         
         self.service.encode("texto de prueba")
         
@@ -233,7 +233,7 @@ class TestEmbeddingService:
     def test_encode_handles_model_errors_gracefully(self):
         """Test que encode maneja errores del modelo graciosamente."""
         # Simular error en el modelo
-        self.service.model.encode.side_effect = Exception("Model error")
+        self.service._model.encode.side_effect = Exception("Model error")
         
         with pytest.raises(Exception) as exc_info:
             self.service.encode("texto de prueba")
@@ -242,7 +242,7 @@ class TestEmbeddingService:
 
     def test_embedding_service_with_custom_random_state(self):
         """Test que EmbeddingService acepta random_state personalizado."""
-        with patch('sentence_transformers.SentenceTransformer') as mock_st:
+        with patch('src.embeddings.service.SentenceTransformer') as mock_st:
             mock_model = Mock()
             mock_st.return_value = mock_model
             
@@ -252,7 +252,7 @@ class TestEmbeddingService:
 
     def test_embedding_service_default_random_state(self):
         """Test que EmbeddingService usa RANDOM_STATE por defecto."""
-        with patch('sentence_transformers.SentenceTransformer') as mock_st:
+        with patch('src.embeddings.service.SentenceTransformer') as mock_st:
             mock_model = Mock()
             mock_st.return_value = mock_model
             
@@ -271,7 +271,7 @@ class TestEmbeddingService:
         
         # Mock modelo para textos válidos
         valid_embeddings = np.random.randn(2, EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = valid_embeddings
+        self.service._model.encode.return_value = valid_embeddings
         
         self.service.encode_batch(texts)
         
@@ -279,13 +279,6 @@ class TestEmbeddingService:
         assert mock_preprocess.call_count == len(texts)
         
         # Verificar las llamadas específicas
-        expected_calls = [
-            (("texto 1",),),
-            (("texto 2",),),
-            ((None,),),
-            (("",),)
-        ]
-        
-        actual_calls = [call.args for call in mock_preprocess.call_args_list]
-        for expected, actual in zip(expected_calls, actual_calls):
-            assert expected == actual
+        actual_calls = [call.args[0] for call in mock_preprocess.call_args_list]
+        expected_calls = ["texto 1", "texto 2", None, ""]
+        assert actual_calls == expected_calls

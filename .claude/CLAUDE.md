@@ -24,7 +24,7 @@ Este archivo maestro contiene solo el estado actual y referencias a módulos. Pa
 
 ---
 
-## 0. ESTADO ACTUAL DEL PROYECTO *(Actualizado: 2026-04-09)*
+## 0. ESTADO ACTUAL DEL PROYECTO *(Actualizado: 2026-04-13)*
 
 ### Avance por Fase
 
@@ -37,31 +37,35 @@ Este archivo maestro contiene solo el estado actual y referencias a módulos. Pa
 | **1D** | Parsers JSON RIPS + XML FEV | ⏳ Pendiente | 0% |
 | **2** | EDA | ✅ Completada | 100% |
 | **3** | Feature Engineering | ✅ Completada (right-censoring corregido y verificado) | 100% |
-| **4** | Entrenamiento del Modelo | ✅ Completada (v1 — recall Glosada pendiente de optimizar) | 100% |
+| **4** | Entrenamiento del Modelo | ✅ Completada (v2 — Recall Glosada 0.8961 ≥ meta 0.80) | 100% |
 | **5** | Explicabilidad (XAI) | ✅ Completada | 100% |
 | **5B** | Validación contra Datos Reales | ✅ Completada (con hallazgos críticos sobre IA Previa) | 100% |
 | **6** | API REST | ✅ Completada | 100% |
-| **6B** | Suite de Testing de Validación | ✅ Completada (147 tests, 96.85% cobertura) | 100% |
+| **6B** | Suite de Testing de Validación | ✅ Completada (380 tests, 83.24% cobertura) | 100% |
 | **7** | Tesis (main.tex) | 🔄 **En progreso** | ~90% |
-| **8** | **Integración LLM Local** | 🔄 **En progreso** | **44%** |
+| **8** | **Integración LLM Local** | 🔄 **En progreso** | **50%** |
 
 ### Resumen Ejecutivo
 
-**Modelo XGBoost v1:**
-- F1-macro: 0.7490
-- AUC-ROC: 0.9078
-- Recall Glosada: 0.7261 (meta: 0.80)
+**Modelo XGBoost v1 (original):**
+- F1-macro: 0.7490 | AUC-ROC: 0.9078 | Recall Glosada: 0.7261
 - Dataset: 633K facturas (mar-2024 a jul-2025)
 - Features: 48 variables (28 originales + 13 log + 4 flags + 6 interacciones)
 
+**Modelo XGBoost v2 base (2026-04-13) — META SUPERADA:**
+- F1-macro: 0.7114 | AUC-ROC: 0.9028 | **Recall Glosada: 0.8961** ✅ (meta: ≥0.80)
+- Artifact: `models/artifacts/20260413_xgboost_v2_base.json`
+- Dataset enriquecido: `data/processed/20260309_{train|val|test}_enriched.parquet`
+- Campos textuales extraídos desde BD: `diagnostico_texto`, `cups_texto`, `observaciones`
+- Cobertura textual train: dx=90.1%, cups=90.1%, obs=63.5%
+
 **Integración LLM Local (Fase 8 - En Progreso):**
-- Objetivo: Superar Recall Glosada ≥ 0.80 mediante enriquecimiento semántico
+- Objetivo original (Recall ≥0.80): **ALCANZADO** con modelo base v2
 - Tecnologías: Ollama + Sentence Transformers + spaCy (100% local, Ley 1581)
-- Progreso: 7/16 tareas completadas (44%)
-- Componentes implementados: PrivacyGuard, EmbeddingService, LLMEvaluator, EmbeddingPipeline
-- Candidatos LLM: Llama 3.2, Mistral 7B, Qwen2.5, Phi-3 Mini
-- **Sistema de reentrenamiento:** Automático mensual con detección de drift
-- Demo MVP: Interfaz gráfica atractiva con Streamlit (pendiente)
+- Progreso: ~8/16 tareas completadas (50%)
+- Componentes implementados: PrivacyGuard, EmbeddingService, LLMEvaluator, EmbeddingPipeline, ModelMonitor, ModelRegistry, RetrainingScheduler, DriftDetector
+- Tests: 380 tests pasando, cobertura 83.24%
+- Demo MVP: Interfaz gráfica con Streamlit (pendiente)
 - Spec: `.kiro/specs/local-llm-integration/` (design-first workflow)
 
 **API REST:**
@@ -70,27 +74,24 @@ Este archivo maestro contiene solo el estado actual y referencias a módulos. Pa
 - Pydantic v2 schemas con 48 features
 - Dockerfile con healthcheck
 
-**Testing Suite (completada):**
-- 147 tests en 10 archivos (unit, integration, performance, security, regression, docker)
-- Cobertura: 96.85% (meta: 80%)
-- Ejecución: 21.76s (meta: <5min)
+**Testing Suite (completada y expandida):**
+- 380 tests en múltiples archivos (unit, integration, property, performance, security, regression, docker)
+- Cobertura: 83.24% (meta: 80%)
 - CI/CD: GitHub Actions con 3 jobs (unit, integration, coverage)
 
 ### Próximos Pasos
 
-1. **Fase 8 (Integración LLM Local):** Continuar implementación (44% completada)
-   - Completar tests unitarios y property tests para componentes implementados
-   - Finalizar reentrenamiento XGBoost con features enriquecidas
+1. **Fase 8 (Integración LLM Local):** Continuar implementación (50% completada)
    - Implementar generador de explicaciones en lenguaje natural
-   - **Sistema de reentrenamiento automático:** Programación mensual con detección de drift
    - Integrar con API FastAPI manteniendo compatibilidad hacia atrás
-   - **Demo MVP:** Crear interfaz gráfica atractiva con Streamlit para demostración
+   - **Demo MVP:** Crear interfaz gráfica con Streamlit para demostración
    - Spec completa disponible en `.kiro/specs/local-llm-integration/tasks.md`
 
 2. **Fase 7:** Pulir tesis main.tex (~10% restante)
    - Revisar referencias cruzadas y bibliografía
    - Verificar formato de tablas y figuras
    - Revisión final de arquitectura AWS
+   - Actualizar resultados con modelo v2 (Recall Glosada 0.8961)
 
 3. **Fase 1D (opcional):** Parsers JSON RIPS + XML FEV para producción
 

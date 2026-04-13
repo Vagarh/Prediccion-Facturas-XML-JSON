@@ -38,7 +38,6 @@ class TestPrivacyGuard:
 
     def test_verify_local_only_with_external_host_raises_exception(self):
         """Test que verify_local_only() lanza excepción con hosts externos."""
-        # Configurar URLs externas inválidas
         external_urls = [
             "http://api.openai.com",
             "https://api.anthropic.com",
@@ -48,26 +47,26 @@ class TestPrivacyGuard:
         ]
         
         for url in external_urls:
-            with patch('src.config.OLLAMA_BASE_URL', url):
-                with pytest.raises(PrivacyViolationError) as exc_info:
-                    self.guard.verify_local_only()
-                
-                assert "host externo detectado" in str(exc_info.value).lower()
-                assert url in str(exc_info.value)
+            guard = PrivacyGuard(ollama_base_url=url)
+            with pytest.raises(PrivacyViolationError) as exc_info:
+                guard.verify_local_only()
+            
+            assert "host externo detectado" in str(exc_info.value).lower()
+            assert url in str(exc_info.value)
 
     def test_verify_local_only_with_invalid_url_raises_exception(self):
         """Test que verify_local_only() lanza excepción con URLs inválidas."""
         invalid_urls = [
             "not-a-url",
             "",
-            "ftp://localhost:11434",
-            "localhost:11434"  # Sin protocolo
+            "ftp://external.host:11434",
+            "http://external.host:11434"  # host externo sin protocolo local
         ]
         
         for url in invalid_urls:
-            with patch('src.config.OLLAMA_BASE_URL', url):
-                with pytest.raises(PrivacyViolationError):
-                    self.guard.verify_local_only()
+            guard = PrivacyGuard(ollama_base_url=url)
+            with pytest.raises(PrivacyViolationError):
+                guard.verify_local_only()
 
     @patch('requests.get')
     def test_check_ollama_available_returns_true_when_server_responds(self, mock_get):

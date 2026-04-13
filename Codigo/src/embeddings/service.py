@@ -158,7 +158,7 @@ class EmbeddingService:
                 len(valid_texts),
                 len(texts),
             )
-            embeddings = self._model.encode(valid_texts, convert_to_numpy=True)
+            embeddings = self._model.encode(valid_texts, convert_to_numpy=True, batch_size=256, show_progress_bar=False)
             for out_idx, emb in zip(valid_indices, embeddings):
                 result[out_idx] = emb.astype(np.float32)
 

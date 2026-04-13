@@ -21,7 +21,7 @@ class TestEmbeddingServiceProperties:
     def setup_method(self):
         """Configuración inicial para cada test."""
         # Mock del modelo SentenceTransformer
-        with patch('sentence_transformers.SentenceTransformer') as mock_st:
+        with patch('src.embeddings.service.SentenceTransformer') as mock_st:
             mock_model = Mock()
             # Por defecto, retorna vector de dimensión correcta
             mock_model.encode.return_value = np.random.randn(EMBEDDING_DIM).astype(np.float32)
@@ -45,7 +45,7 @@ class TestEmbeddingServiceProperties:
         
         # Mock del modelo para retornar vector de dimensión correcta
         expected_embedding = np.random.randn(EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = expected_embedding
+        self.service._model.encode.return_value = expected_embedding
         
         result = self.service.encode(text)
         
@@ -75,7 +75,7 @@ class TestEmbeddingServiceProperties:
                                     f"Input nulo '{null_input}' debe producir vector de ceros")
         
         # Verificar que no se llamó al modelo para inputs nulos
-        self.service.model.encode.assert_not_called()
+        self.service._model.encode.assert_not_called()
 
     @given(st.lists(st.text(), min_size=0, max_size=10))
     def test_batch_encoding_shape_property(self, text_list):
@@ -88,7 +88,7 @@ class TestEmbeddingServiceProperties:
         # Mock del modelo para batch encoding
         batch_size = len(text_list)
         expected_batch = np.random.randn(batch_size, EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = expected_batch
+        self.service._model.encode.return_value = expected_batch
         
         result = self.service.encode_batch(text_list)
         
@@ -114,7 +114,7 @@ class TestEmbeddingServiceProperties:
         expected_embedding = np.random.randn(EMBEDDING_DIM).astype(np.float32)
         
         # Configurar mock para retornar siempre el mismo embedding
-        self.service.model.encode.return_value = expected_embedding
+        self.service._model.encode.return_value = expected_embedding
         
         # Múltiples llamadas
         result1 = self.service.encode(text)
@@ -140,7 +140,7 @@ class TestEmbeddingServiceProperties:
         # Mock para textos válidos solamente
         if valid_count > 0:
             valid_embeddings = np.random.randn(valid_count, EMBEDDING_DIM).astype(np.float32)
-            self.service.model.encode.return_value = valid_embeddings
+            self.service._model.encode.return_value = valid_embeddings
         
         result = self.service.encode_batch(mixed_list)
         
@@ -186,7 +186,7 @@ class TestEmbeddingServiceProperties:
         
         # Mock embedding
         expected_embedding = np.random.randn(EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = expected_embedding
+        self.service._model.encode.return_value = expected_embedding
         
         result = self.service.encode(alphanumeric_text)
         
@@ -213,16 +213,22 @@ class TestEmbeddingServiceProperties:
         
         # Mock para encode_batch
         batch_embeddings = np.array(individual_embeddings)
-        self.service.model.encode.return_value = batch_embeddings
-        
+        self.service._model.encode.return_value = batch_embeddings
+
+        # Resetear call_count antes de medir (Hypothesis reutiliza la instancia entre ejemplos)
+        self.service._model.encode.reset_mock()
+
         # Obtener resultado de batch
         batch_result = self.service.encode_batch(unique_texts)
-        
+
         # Propiedad: consistencia de forma
         assert batch_result.shape == (len(unique_texts), EMBEDDING_DIM), "Forma de batch inconsistente"
-        
-        # Verificar que se llamó al modelo (para batch, no individual)
-        assert self.service.model.encode.call_count == 1, "encode_batch debe hacer una sola llamada al modelo"
+
+        # Verificar que encode_batch hace como máximo 1 llamada al modelo (batch vs N individuales)
+        # preprocess_text puede filtrar todos los textos → 0 llamadas
+        assert self.service._model.encode.call_count <= 1, (
+            "encode_batch debe hacer como máximo una llamada al modelo (batch)"
+        )
 
     @given(st.text().filter(lambda x: len(x) > 1000))
     def test_large_text_handling_property(self, large_text):
@@ -234,7 +240,7 @@ class TestEmbeddingServiceProperties:
         """
         # Mock para texto grande
         expected_embedding = np.random.randn(EMBEDDING_DIM).astype(np.float32)
-        self.service.model.encode.return_value = expected_embedding
+        self.service._model.encode.return_value = expected_embedding
         
         result = self.service.encode(large_text)
         
