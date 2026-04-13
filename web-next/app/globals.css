@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  --bg:      #020617;
+  --surface: #0E1223;
+  --card:    #131929;
+  --border:  #1e2d45;
+  --muted:   #1A1E2F;
+  --text:    #F8FAFC;
+  --subtle:  #94A3B8;
+  --accent:  #22C55E;
+  --blue:    #3B82F6;
+  --indigo:  #6366F1;
+  --amber:   #F59E0B;
+  --danger:  #EF4444;
+}
+
+@theme inline {
+  --color-bg:      var(--bg);
+  --color-surface: var(--surface);
+  --color-card:    var(--card);
+  --color-border:  var(--border);
+  --color-muted:   var(--muted);
+  --color-text:    var(--text);
+  --color-subtle:  var(--subtle);
+  --color-accent:  var(--accent);
+  --color-blue:    var(--blue);
+  --color-indigo:  var(--indigo);
+  --color-amber:   var(--amber);
+  --color-danger:  var(--danger);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-heading);
+  --font-mono: var(--font-code);
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+/* Gradient text */
+.grad-text {
+  background: linear-gradient(135deg, #22C55E 0%, #3B82F6 50%, #6366F1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Grid background */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(34,197,94,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34,197,94,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Footer links */
+.footer-link:hover { color: #94A3B8 !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--subtle); }
