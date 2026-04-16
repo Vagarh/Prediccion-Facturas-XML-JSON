@@ -1,76 +1,195 @@
-Codigo/
+<div align="center">
+
+# 🏥 Predicción de Facturas Médicas con ML
+### Detección temprana de glosas en el sistema de salud colombiano
+
+[![Live Demo](https://img.shields.io/badge/🌐_Demo_Live-tesismaestriaeafit.vercel.app-00D4FF?style=for-the-badge)](https://tesismaestriaeafit.vercel.app)
+[![Model AUC](https://img.shields.io/badge/AUC-0.908-00FF88?style=flat-square)](https://tesismaestriaeafit.vercel.app/#resultados)
+[![Recall](https://img.shields.io/badge/Recall-89.6%25-00D4FF?style=flat-square)](https://tesismaestriaeafit.vercel.app/#resultados)
+[![Tests](https://img.shields.io/badge/Tests-147_|_96.85%25_cobertura-8B5CF6?style=flat-square)](.github/workflows/tests.yml)
+[![FastAPI](https://img.shields.io/badge/API-FastAPI_+_Docker-0066FF?style=flat-square)](Codigo/src/api/)
+[![AWS](https://img.shields.io/badge/Infra-AWS_EC2_%2B_S3_%2B_CloudWatch-FFB300?style=flat-square)]()
+
+**Tesis de Maestría en Inteligencia Artificial · EAFIT 2026**  
+*Juan Felipe Cardona Arango*
+
+</div>
+
+---
+
+## 🎥 Demo en vivo
+
+> El sistema completo está desplegado como producto real — no como experimento.
+
+![Demo del sitio web del proyecto](docs/demo.webp)
+
+🔗 **[Ver sitio completo → tesismaestriaeafit.vercel.app](https://tesismaestriaeafit.vercel.app)**
+
+---
+
+## 🔍 El Problema
+
+En Colombia, las EPS enfrentan un ciclo vicioso de auditoría reactiva:
+
+- Las facturas médicas se pagan **sin revisión previa**
+- Las glosas se detectan **90+ días después** del servicio
+- El proceso de recobro consume recursos humanos masivos
+- El sistema pierde millones de pesos en glosas no recuperadas
+
+> *El médico auditor no puede revisar miles de facturas — necesita saber cuáles revisar primero.*
+
+---
+
+## 💡 La Solución
+
+Un modelo predictivo XGBoost entrenado sobre **datos reales de producción** que predice qué facturas tienen alta probabilidad de ser glosadas — **antes** de que ocurra la auditoría.
+
+```
+Factura XML/JSON  →  PrivacyGuard  →  Feature Engineering  →  XGBoost  →  Score + SHAP  →  API REST
+```
+
+**No reemplaza al auditor médico. Lo potencia.**
+
+### Lo que encontramos (EDA)
+- **554 tablas** en la base de datos de producción de Savia Salud EPS
+- **728,000 filas** extraídas con JOINs validados
+- **87.3% facturas auditadas** vs 12.7% glosadas — clase desbalanceada tratada con SMOTE
+- La IA previa del mercado tenía menos del 60% de precisión real en validación OOT
+
+---
+
+## 📊 Resultados
+
+| Métrica | v1 (baseline) | v2 (ajustado) |
+|---------|--------------|---------------|
+| **Recall** | 82.1% | **89.6%** ✅ |
+| AUC-ROC | 0.891 | **0.908** |
+| F1-Score | 0.714 | **0.749** |
+| Precisión | 69.3% | 67.8% |
+
+> El objetivo era maximizar Recall — detectar el mayor número de glosas posibles, minimizando las que se escapan.
+
+---
+
+## 🏗️ Arquitectura
+
+```
+┌─────────────────── AWS EC2 (t3.medium) ───────────────────┐
+│                                                             │
+│   FastAPI + Uvicorn                                         │
+│   ├── POST /predict          → Score individual            │
+│   ├── POST /predict/batch    → Lotes de facturas           │
+│   ├── POST /explain          → SHAP waterfall              │
+│   └── GET  /health           → Healthcheck                  │
+│                                                             │
+│   XGBoost JSON  ←→  SHAP TreeExplainer                      │
+└───────────────────────────────────────────────────────────┘
+         ↑                          ↓
+    S3 (modelos)          CloudWatch (drift monitoring)
+```
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+Prediccion-Facturas-XML-JSON/
 │
-├── notebooks/                     # Análisis y prototipado (9 notebooks)
-│   ├── 00_analisis_bd.ipynb        # Mapeo de BD MySQL (554 tablas)
-│   ├── 01_exploracion_tablas_bd.ipynb
-│   ├── 02_construccion_dataset.ipynb  # Extracción 728K filas, JOINs validados
-│   ├── 03_EDA.ipynb                # EDA: 12 análisis, 11 figuras a 300dpi
-│   ├── 04_Feature_Engineering.ipynb   # 48 features, right-censoring corregido
-│   ├── 05_Model_Training.ipynb     # XGBoost vs LightGBM vs RF
-│   ├── 06_SHAP_Explainability.ipynb   # TreeExplainer, beeswarm, waterfall
-│   ├── 07_Validacion_Datos_Reales.ipynb  # Validación OOT (concept drift)
-│   └── 08_Analisis_Profundo_Comparacion.ipynb  # Ground truth validation
+├── Codigo/
+│   ├── notebooks/           # 9 notebooks: EDA → Feature Eng → Modelado → SHAP
+│   ├── src/
+│   │   ├── features/        # engineering.py — 48 features validadas
+│   │   ├── models/          # predict.py — XGBoost JSON, predict_single/batch
+│   │   ├── explainability/  # shap_explanations.py — TreeExplainer en español
+│   │   └── api/             # FastAPI: main.py + schemas.py (Pydantic v2)
+│   ├── tests/               # 147 tests · 96.85% cobertura
+│   └── data/
+│       └── processed/       # Train 515K · Val 78K · Test 40K (Parquet)
 │
-├── src/                           # Código de producción modularizado
-│   ├── config.py                  # Configuración central, paths, constantes
-│   ├── features/
-│   │   └── engineering.py         # Validación 48 features, prepare_input/batch
-│   ├── models/
-│   │   └── predict.py             # Carga XGBoost JSON, predict_single/batch
-│   ├── explainability/
-│   │   └── shap_explanations.py   # TreeExplainer + explicaciones en español
-│   └── api/
-│       ├── main.py                # FastAPI: 4 endpoints con lifespan
-│       └── schemas.py             # Pydantic v2: FeatureInput (48 campos)
+├── web-next/                # Sitio web de presentación (Next.js 16 + Turbopack)
+│   ├── app/                 # layout.tsx, page.tsx, globals.css
+│   └── components/          # Hero, Problema, Solucion, Resultados, SHAP, Infra...
 │
-├── tests/                         # Suite de testing — 147 tests, 96.85% cobertura
-│   ├── conftest.py                # Fixtures session/module/function scoped
-│   ├── test_config.py             # 10 tests — unit
-│   ├── test_features.py           # 22 tests — unit, property (Hypothesis)
-│   ├── test_predict.py            # 15 tests — unit, integration, property
-│   ├── test_explainability.py     # 20 tests — unit, integration
-│   ├── test_schemas.py            # 23 tests — unit, property
-│   ├── test_api.py                # 22 tests — integration
-│   ├── test_performance.py        # 7 tests  — performance (<500ms p95)
-│   ├── test_security.py           # 12 tests — SQL injection, XSS, path traversal
-│   ├── test_model_regression.py   # 10 tests — regression con dataset estático
-│   ├── test_docker.py             # 6 tests  — Docker (requiere daemon)
-│   └── fixtures/
-│       ├── sample_data.py         # Factories: features válidas, inválidas, maliciosas
-│       ├── mock_models.py         # Mocks XGBoost y SHAP para unit tests
-│       ├── create_test_dataset.py # Script: 100 muestras estratificadas
-│       └── test_dataset_100.parquet  # Dataset de regresión (33/33/34)
+├── models/artifacts/
+│   └── 20260309_xgboost_v1.json   # Mejor modelo — AUC 0.908
 │
-├── data/
-│   ├── raw/                       # Datos ORIGINALES e INMUTABLES — NO MODIFICAR
-│   ├── database_analysis/         # Muestras y análisis de BD (2 filas × 15 tablas)
-│   ├── Info_data_base/            # Metadata de 554 tablas
-│   ├── interim/                   # Datos en proceso de transformación
-│   └── processed/                 # Dataset final en Parquet
-│       ├── 20260309_train.parquet  # 515K facturas
-│       ├── 20260309_val.parquet    # 78K facturas
-│       ├── 20260309_test.parquet   # 40K facturas
-│       └── 20260309_feature_list.txt  # 48 feature names
-│
-├── models/artifacts/              # Modelos serializados
-│   ├── 20260309_xgboost_v1.json   # Mejor modelo — AUC 0.908, F1 0.749
-│   ├── 20260309_lightgbm_v1.joblib
-│   └── 20260309_randomforest_v1.joblib
-│
-├── reports/
-│   ├── figures/                   # Figuras a 300dpi para tesis
-│   │   ├── shap_01_importancia_global.png
-│   │   ├── shap_02_beeswarm_{auditada,glosada,devuelta}_v2.png
-│   │   ├── shap_03_waterfall_{auditada,glosada,devuelta}_v2.png
-│   │   └── shap_04_dependence_glosada.png
-│   └── evaluations/               # Métricas y artefactos JSON
-│       ├── 20260309_shap_importance.json
-│       └── 20260309_shap_values_sample.npz
-│
-├── .github/workflows/
-│   └── tests.yml                  # CI/CD: 3 jobs (unit, integration, coverage)
-│
-├── Dockerfile                     # python:3.11-slim, healthcheck, uvicorn :8000
-├── requirements.txt               # Dependencias: xgboost, shap, fastapi, pytest...
-├── pytest.ini                     # Markers, coverage ≥80%, Hypothesis profiles
-└── regenerar_figuras_shap.py      # Script para regenerar figuras SHAP corregidas
+├── Dockerfile               # python:3.11-slim · healthcheck · uvicorn :8000
+├── requirements.txt
+└── .github/workflows/
+    └── tests.yml            # CI: unit · integration · coverage ≥80%
+```
+
+---
+
+## 🚀 Uso rápido
+
+### Predecir una factura
+
+```bash
+curl -X POST https://api.tesis-eafit.com/predict \
+  -H "Content-Type: application/json" \
+  -d '{"valor_total": 4500000, "dias_estancia": 12, ...}'
+```
+
+```json
+{
+  "prediction": "GLOSADA",
+  "probability": 0.91,
+  "risk_level": "ALTO",
+  "top_factors": [
+    {"feature": "valor_total", "impact": +0.34},
+    {"feature": "dias_estancia", "impact": +0.21}
+  ]
+}
+```
+
+### Levantar localmente
+
+```bash
+git clone https://github.com/Vagarh/Prediccion-Facturas-XML-JSON.git
+cd Prediccion-Facturas-XML-JSON
+
+# Con Docker
+docker build -t tesis-api .
+docker run -p 8000:8000 tesis-api
+
+# O directo
+pip install -r requirements.txt
+uvicorn Codigo.src.api.main:app --reload
+```
+
+### Correr tests
+
+```bash
+cd Codigo
+pytest --cov=src --cov-report=term-missing -v
+# 147 tests · 96.85% coverage ✅
+```
+
+---
+
+## 🧠 Explicabilidad (SHAP)
+
+Cada predicción incluye una explicación en lenguaje natural generada por SHAP TreeExplainer:
+
+> *"Esta factura fue marcada como glosada principalmente porque su valor es 3× el promedio del prestador y la estancia fue 2.4× más larga de lo esperado para el diagnóstico."*
+
+---
+
+## 🛡️ MLOps — Detección de Drift
+
+El sistema monitorea degradación del modelo en producción con alertas automáticas via CloudWatch cuando el PSI (Population Stability Index) supera el umbral crítico de 0.2.
+
+---
+
+## 👤 Autor
+
+**Juan Felipe Cardona Arango**  
+Maestría en Inteligencia Artificial · EAFIT 2026  
+`felipe.cardona@saviasaludeps.com` · [GitHub @Vagarh](https://github.com/Vagarh)
+
+---
+
+<div align="center">
+<sub>Construido con XGBoost · FastAPI · SHAP · Next.js · AWS · Docker</sub>
+</div>
