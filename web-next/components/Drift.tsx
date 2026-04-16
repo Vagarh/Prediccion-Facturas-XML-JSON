@@ -4,90 +4,162 @@ import { AlertTriangle, RefreshCw, Activity } from "lucide-react";
 import FadeIn from "./FadeIn";
 
 const driftMetrics = [
-  { label: "PSI threshold", value: "0.20", note: "Population Stability Index", color: "#F59E0B" },
-  { label: "Ventana de monitoreo", value: "30d", note: "Revisión mensual automática", color: "#3B82F6" },
-  { label: "Trigger reentrenamiento", value: "≥ 3", note: "Features con drift simultáneo", color: "#EF4444" },
+  { label: "PSI threshold",         value: "0.20", note: "Population Stability Index",    color: "#FFB300" },
+  { label: "Ventana de monitoreo",   value: "30d",  note: "Revisión mensual automática",  color: "#00D4FF" },
+  { label: "Trigger reentrenamiento",value: "≥ 3",  note: "Features con drift simultáneo", color: "#FF4466" },
 ];
 
 export default function Drift() {
   return (
-    <section className="py-24 px-6" style={{ background: "#0A0E1A" }}>
+    <section className="py-28 px-6" style={{ background: "#080810" }}>
       <div className="max-w-5xl mx-auto">
         <FadeIn className="text-center mb-14">
           <span
-            className="inline-block text-xs px-4 py-1.5 rounded-full mb-5"
-            style={{ background: "#0E1223", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontFamily: "var(--font-code)" }}
+            className="section-label"
+            style={{
+              border: "1px solid rgba(255,68,102,0.25)",
+              color: "#FF4466",
+              background: "rgba(255,68,102,0.05)",
+            }}
           >
             MLOps · Concept Drift
           </span>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(2rem,5vw,3.2rem)", fontWeight: 600, lineHeight: 1.15, marginBottom: "1rem" }}>
-            El modelo se mantiene<br />al día automáticamente.
+          <h2
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "clamp(2.2rem, 5vw, 3.5rem)",
+              fontWeight: 700,
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+              marginBottom: "1rem",
+            }}
+          >
+            El modelo se mantiene
+            <br />
+            <span className="grad-text">al día automáticamente.</span>
           </h2>
-          <p style={{ color: "#94A3B8", fontSize: "1.1rem", maxWidth: 560, margin: "0 auto", lineHeight: 1.7 }}>
+          <p style={{ color: "#8892B0", fontSize: "1.05rem", maxWidth: 540, margin: "0 auto", lineHeight: 1.75 }}>
             Los patrones de facturación cambian con cada reforma normativa.
             El sistema detecta drift y dispara reentrenamiento sin intervención manual.
           </p>
         </FadeIn>
 
         <div className="grid md:grid-cols-2 gap-8 items-start">
-          {/* Alert mockup */}
+          {/* Alert card */}
           <FadeIn>
             <motion.div
-              className="rounded-2xl p-6"
-              style={{ background: "#131929", border: "1px solid rgba(239,68,68,0.25)" }}
-              animate={{ boxShadow: ["0 0 0px rgba(239,68,68,0)", "0 0 30px rgba(239,68,68,0.12)", "0 0 0px rgba(239,68,68,0)"] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="rounded-2xl p-7"
+              style={{ background: "#10111A", border: "1px solid rgba(255,68,102,0.2)" }}
+              animate={{
+                boxShadow: [
+                  "0 0 0px rgba(255,68,102,0)",
+                  "0 0 40px rgba(255,68,102,0.1)",
+                  "0 0 0px rgba(255,68,102,0)",
+                ],
+              }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
             >
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)" }}>
-                  <AlertTriangle size={18} color="#EF4444" />
+              <div className="flex items-center gap-3 mb-6">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: "rgba(255,68,102,0.12)", border: "1px solid rgba(255,68,102,0.25)", color: "#FF4466" }}
+                >
+                  <AlertTriangle size={16} />
                 </div>
                 <div>
-                  <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>Alerta de Drift Detectado</p>
-                  <p style={{ color: "#94A3B8", fontSize: "0.72rem", fontFamily: "var(--font-code)" }}>2026-04-13 · 3 features afectadas</p>
+                  <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>Alerta de Drift Detectado</p>
+                  <p style={{ color: "#8892B0", fontSize: "0.7rem", fontFamily: "var(--font-code)", marginTop: 2 }}>
+                    2026-04-13 · 3 features afectadas
+                  </p>
                 </div>
               </div>
 
-              <div className="space-y-3 mb-5">
-                {["vr_factura (PSI: 0.34)", "dias_estancia (PSI: 0.28)", "num_procedimientos (PSI: 0.22)"].map((f, i) => (
-                  <div key={f} className="flex items-center justify-between rounded-lg px-4 py-2.5"
-                    style={{ background: "#0E1223", border: "1px solid rgba(239,68,68,0.15)" }}>
-                    <span style={{ fontFamily: "var(--font-code)", fontSize: "0.72rem", color: "#94A3B8" }}>{f}</span>
-                    <span style={{ fontSize: "0.65rem", color: "#EF4444", background: "rgba(239,68,68,0.1)", padding: "2px 8px", borderRadius: 4 }}>DRIFT</span>
+              <div className="space-y-2.5 mb-6">
+                {["vr_factura (PSI: 0.34)", "dias_estancia (PSI: 0.28)", "num_procedimientos (PSI: 0.22)"].map((f) => (
+                  <div
+                    key={f}
+                    className="flex items-center justify-between rounded-xl px-4 py-2.5"
+                    style={{ background: "#0C0D12", border: "1px solid rgba(255,68,102,0.12)" }}
+                  >
+                    <span style={{ fontFamily: "var(--font-code)", fontSize: "0.72rem", color: "#8892B0" }}>{f}</span>
+                    <span
+                      style={{
+                        fontSize: "0.6rem",
+                        color: "#FF4466",
+                        background: "rgba(255,68,102,0.1)",
+                        padding: "2px 8px",
+                        borderRadius: 4,
+                        fontFamily: "var(--font-code)",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      DRIFT
+                    </span>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-lg px-4 py-3 flex items-center gap-3"
-                style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)" }}>
-                <RefreshCw size={14} color="#22C55E" />
-                <span style={{ fontSize: "0.78rem", color: "#22C55E" }}>Reentrenamiento programado para el 2026-05-01</span>
+              <div
+                className="rounded-xl px-4 py-3 flex items-center gap-3"
+                style={{ background: "rgba(0,255,136,0.06)", border: "1px solid rgba(0,255,136,0.18)" }}
+              >
+                <RefreshCw size={13} color="#00FF88" />
+                <span style={{ fontSize: "0.78rem", color: "#00FF88" }}>
+                  Reentrenamiento programado para el 2026-05-01
+                </span>
               </div>
             </motion.div>
           </FadeIn>
 
-          {/* Metrics */}
-          <FadeIn delay={0.15}>
+          {/* Metrics + lifecycle */}
+          <FadeIn delay={0.12}>
             <div className="space-y-4">
               {driftMetrics.map((m) => (
-                <div key={m.label} className="rounded-xl p-5 flex items-center gap-5"
-                  style={{ background: "#131929", border: "1px solid #1e2d45" }}>
-                  <p style={{ fontFamily: "var(--font-code)", fontSize: "1.6rem", fontWeight: 700, color: m.color, flexShrink: 0, minWidth: "4.5rem" }}>{m.value}</p>
+                <div
+                  key={m.label}
+                  className="rounded-xl p-5 flex items-center gap-5"
+                  style={{ background: "#10111A", border: "1px solid #1C1E2E" }}
+                >
+                  <p
+                    style={{
+                      fontFamily: "var(--font-code)",
+                      fontSize: "1.7rem",
+                      fontWeight: 700,
+                      color: m.color,
+                      flexShrink: 0,
+                      minWidth: "5rem",
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    {m.value}
+                  </p>
                   <div>
-                    <p style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: "0.2rem" }}>{m.label}</p>
-                    <p style={{ color: "#94A3B8", fontSize: "0.78rem" }}>{m.note}</p>
+                    <p style={{ fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.2rem" }}>{m.label}</p>
+                    <p style={{ color: "#8892B0", fontSize: "0.75rem" }}>{m.note}</p>
                   </div>
                 </div>
               ))}
 
-              <div className="rounded-xl p-5" style={{ background: "#131929", border: "1px solid #1e2d45" }}>
+              <div className="rounded-xl p-5" style={{ background: "#10111A", border: "1px solid #1C1E2E" }}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Activity size={14} color="#6366F1" />
-                  <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>Ciclo de vida del modelo</span>
+                  <Activity size={13} color="#8B5CF6" />
+                  <span style={{ fontWeight: 700, fontSize: "0.88rem" }}>Ciclo de vida del modelo</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs" style={{ color: "#94A3B8" }}>
-                  {["Monitoreo", "→", "Drift?", "→", "Retrain", "→", "Validar", "→", "Deploy"].map((s, i) => (
-                    <span key={i} style={{ color: s === "→" ? "#334155" : s === "Drift?" ? "#EF4444" : s === "Retrain" ? "#F59E0B" : s === "Deploy" ? "#22C55E" : "#94A3B8" }}>{s}</span>
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  {[
+                    ["Monitoreo", "#8892B0"],
+                    ["→", "#2A2D3E"],
+                    ["Drift?", "#FF4466"],
+                    ["→", "#2A2D3E"],
+                    ["Retrain", "#FFB300"],
+                    ["→", "#2A2D3E"],
+                    ["Validar", "#00D4FF"],
+                    ["→", "#2A2D3E"],
+                    ["Deploy", "#00FF88"],
+                  ].map(([s, col], i) => (
+                    <span key={i} style={{ color: col, fontFamily: "var(--font-code)", fontWeight: s === "→" ? 400 : 600 }}>
+                      {s}
+                    </span>
                   ))}
                 </div>
               </div>

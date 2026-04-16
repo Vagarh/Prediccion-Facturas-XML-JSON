@@ -1,26 +1,19 @@
 import type { Metadata } from "next";
-import { Crimson_Pro, Atkinson_Hyperlegible, Roboto_Mono } from "next/font/google";
+import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const heading = Crimson_Pro({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
-const body = Atkinson_Hyperlegible({
+// MiniMax-style: bold geometric sans-serif
+const body = Space_Grotesk({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
-const code = Roboto_Mono({
+const code = JetBrains_Mono({
   variable: "--font-code",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "600"],
   display: "swap",
 });
 
@@ -37,8 +30,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${heading.variable} ${body.variable} ${code.variable} scroll-smooth`}>
-      <body className="min-h-screen antialiased" style={{ background: "#020617", color: "#F8FAFC", fontFamily: "var(--font-body, sans-serif)" }}>
+    <html lang="es" className={`${body.variable} ${code.variable} scroll-smooth`}>
+      <body
+        className="min-h-screen antialiased"
+        style={{ background: "#060608", color: "#F0F2FF", fontFamily: "var(--font-body, sans-serif)" }}
+      >
         {children}
       </body>
     </html>
