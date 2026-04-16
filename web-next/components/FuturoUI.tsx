@@ -7,7 +7,7 @@ const siguientes = [
   {
     icon: <MessageSquare size={15} />, color: "#8B5CF6", estado: "En desarrollo",
     title: "Explicaciones en lenguaje natural",
-    desc: "LLM local (Ollama) que convierte el SHAP output en texto comprensible para el auditor: "Esta factura fue marcada como glosada principalmente porque su valor es 3× el promedio del prestador."",
+    desc: "LLM local (Ollama) que convierte el SHAP output en texto comprensible para el auditor: \"Esta factura fue marcada como glosada principalmente porque su valor es 3× el promedio del prestador.\"",
   },
   {
     icon: <Layers size={15} />, color: "#00D4FF", estado: "Diseñado",
