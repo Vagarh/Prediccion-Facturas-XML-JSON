@@ -7,6 +7,7 @@ import Resultados from "@/components/Resultados";
 import Drift from "@/components/Drift";
 import Explicabilidad from "@/components/Explicabilidad";
 import Arquitectura from "@/components/Arquitectura";
+import Ventajas from "@/components/Ventajas";
 import FuturoUI from "@/components/FuturoUI";
 import VideoSection from "@/components/VideoSection";
 import Footer from "@/components/Footer";
@@ -24,11 +25,13 @@ export default function Home() {
         <SectionDivider />
         <Resultados />
         <SectionDivider />
-        <Drift />
-        <SectionDivider />
         <Explicabilidad />
         <SectionDivider />
         <Arquitectura />
+        <SectionDivider />
+        <Drift />
+        <SectionDivider />
+        <Ventajas />
         <SectionDivider />
         <FuturoUI />
         <SectionDivider />

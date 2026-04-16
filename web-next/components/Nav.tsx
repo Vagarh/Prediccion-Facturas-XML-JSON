@@ -6,11 +6,11 @@ import { Menu, X } from "lucide-react";
 const links = [
   { href: "#problema",      label: "Problema" },
   { href: "#solucion",      label: "Solución" },
-  { href: "#resultados",    label: "Resultados" },
+  { href: "#impacto",       label: "Resultados" },
   { href: "#explicabilidad",label: "SHAP" },
   { href: "#arquitectura",  label: "Arquitectura" },
-  { href: "#futuro",        label: "Futuro" },
-  { href: "#video",         label: "Video" },
+  { href: "#ventajas",      label: "Alcance" },
+  { href: "#futuro",        label: "Qué sigue" },
 ];
 
 export default function Nav() {
