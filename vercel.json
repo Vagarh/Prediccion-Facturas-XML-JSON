@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd web-next && npm run build",
+  "outputDirectory": "web-next/.next",
+  "installCommand": "cd web-next && npm install",
+  "framework": "nextjs",
+  "devCommand": "cd web-next && npm run dev",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- web-next/"
+}
