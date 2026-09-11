@@ -50,7 +50,7 @@ export default function Solucion() {
                   items: ["48 variables construidas", "Log-transforms del valor", "Flags de riesgo binarios", "Interacciones cruzadas"],
                 },
                 {
-                  step: "XGBoost v2",
+                  step: "LightGBM v3",
                   icon: <GitBranch size={16} />, color: "#0066FF",
                   items: ["Clasificación multiclase", "Auditada / Glosada / Devuelta", "Calibración de probabilidades", "SHAP en tiempo real"],
                 },
@@ -125,13 +125,13 @@ export default function Solucion() {
         <FadeIn>
           <div className="rounded-2xl p-8" style={{ background: "#0C0D12", border: "1px solid #1C1E2E" }}>
             <p style={{ fontFamily: "var(--font-code)", fontSize: "0.65rem", color: "#3D4461", marginBottom: "1.5rem", textAlign: "center", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-              El modelo predice 3 categorías · Distribución en 633K facturas
+              El modelo predice 3 categorías · Distribución real en 1.08M facturas
             </p>
             <div className="grid md:grid-cols-3 gap-4">
               {[
-                { label: "Auditada",  pct: "60%", color: "#00D4FF", bg: "rgba(0,212,255,0.06)", desc: "Cumple requisitos. Pasa auditoría estándar." },
-                { label: "Glosada",   pct: "28%", color: "#FF4466", bg: "rgba(255,68,102,0.06)", desc: "Tiene errores. Se objeta total o parcialmente." },
-                { label: "Devuelta",  pct: "12%", color: "#FFB300", bg: "rgba(255,179,0,0.06)",  desc: "Incompleta. Se regresa al prestador a corregir." },
+                { label: "Auditada",  pct: "19%", color: "#00D4FF", bg: "rgba(0,212,255,0.06)", desc: "Cumple requisitos. Pasa auditoría estándar." },
+                { label: "Glosada",   pct: "66%", color: "#FF4466", bg: "rgba(255,68,102,0.06)", desc: "Tiene errores. Se objeta total o parcialmente." },
+                { label: "Devuelta",  pct: "14%", color: "#FFB300", bg: "rgba(255,179,0,0.06)",  desc: "Incompleta. Se regresa al prestador a corregir." },
               ].map((c) => (
                 <div key={c.label} className="rounded-xl p-6 text-center"
                   style={{ background: c.bg, border: `1px solid ${c.color}20` }}>

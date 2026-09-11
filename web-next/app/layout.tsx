@@ -20,10 +20,10 @@ const code = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Analítica Predictiva para Auditoría en Salud · Juan Felipe Cardona",
   description:
-    "Modelo de IA que predice el estado de auditoría de facturas médicas. XGBoost · Recall Glosada 89.6% · Universidad EAFIT 2026",
+    "Modelo de IA que predice el estado de auditoría de facturas médicas. LightGBM · Recall Glosada 86.4% · Universidad EAFIT 2026",
   openGraph: {
     title: "Analítica Predictiva para Auditoría Prestacional",
-    description: "Recall Glosada 0.8961 — meta ≥0.80 superada. Universidad EAFIT 2026.",
+    description: "Recall Glosada 0.8635 — meta ≥0.80 superada, estable fuera de muestra. Universidad EAFIT 2026.",
     type: "website",
   },
 };

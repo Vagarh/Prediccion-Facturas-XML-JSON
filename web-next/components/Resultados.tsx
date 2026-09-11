@@ -4,9 +4,10 @@ import { CheckCircle2, TrendingUp, Target } from "lucide-react";
 import FadeIn from "./FadeIn";
 
 const bars = [
-  { label: "Recall Glosada — facturas glosadas detectadas antes de pagar", v1: 72.6, v2: 89.6, color: "#00FF88", key: "recall" },
-  { label: "AUC-ROC — capacidad general de discriminación del modelo",      v1: 90.8, v2: 90.3, color: "#0066FF", key: "auc" },
-  { label: "F1-macro — balance entre precisión y recall en las 3 clases",  v1: 74.9, v2: 71.1, color: "#00D4FF", key: "f1" },
+  { label: "Recall Glosada — prueba (feb-mar 2026)",              v1: 72.1, v2: 86.4, color: "#00FF88", key: "recall_test" },
+  { label: "Recall Glosada — 2 meses después (out-of-time)",      v1: 53.9, v2: 86.0, color: "#00FF88", key: "recall_oot" },
+  { label: "F1-macro — prueba",                                    v1: 74.3, v2: 75.8, color: "#00D4FF", key: "f1_test" },
+  { label: "F1-macro — 2 meses después (out-of-time)",             v1: 59.4, v2: 72.4, color: "#00D4FF", key: "f1_oot" },
 ];
 
 export default function Resultados() {
@@ -17,15 +18,16 @@ export default function Resultados() {
         <FadeIn className="text-center mb-16">
           <span className="section-label">Resultados</span>
           <h2 style={{ fontFamily: "var(--font-body)", fontSize: "clamp(2.2rem, 5vw, 3.5rem)", fontWeight: 700, lineHeight: 1.1, letterSpacing: "-0.022em", marginBottom: "1.2rem" }}>
-            9 de cada 10 glosas,
+            Más de 8 de cada 10 glosas,
             <br />
-            <span className="grad-text">detectadas antes de pagar.</span>
+            <span className="grad-text">detectadas antes de pagar — y se mantiene.</span>
           </h2>
           <p style={{ color: "#8892B0", fontSize: "1.05rem", maxWidth: 580, margin: "0 auto", lineHeight: 1.78 }}>
             La meta era detectar al menos el 80% de las facturas glosadas.
-            El modelo v2 llegó al{" "}
-            <strong style={{ color: "#00FF88" }}>89.6%</strong> — casi 10 puntos por encima del objetivo,
-            validado sobre datos reales out-of-time.
+            El modelo v3 llega al{" "}
+            <strong style={{ color: "#00FF88" }}>86.4%</strong> en prueba y sigue en{" "}
+            <strong style={{ color: "#00FF88" }}>86.0%</strong> dos meses después, sin la caída que
+            sufría la versión anterior fuera de su ventana de entrenamiento.
           </p>
         </FadeIn>
 
@@ -41,7 +43,7 @@ export default function Resultados() {
                   <span style={{ fontFamily: "var(--font-code)", fontSize: "0.65rem", color: "#00FF88", letterSpacing: "0.1em" }}>META SUPERADA</span>
                 </div>
                 <p style={{ fontFamily: "var(--font-code)", fontSize: "clamp(3.5rem, 9vw, 6rem)", fontWeight: 700, color: "#00FF88", lineHeight: 1, letterSpacing: "-0.04em" }}>
-                  89.6%
+                  86.4%
                 </p>
                 <p style={{ color: "#8892B0", fontSize: "0.9rem", marginTop: "0.5rem" }}>
                   Recall Glosada{" "}
@@ -50,7 +52,7 @@ export default function Resultados() {
               </div>
               <div className="flex-1 space-y-3 w-full">
                 {[
-                  { text: "Entrenado con 633.000 facturas reales con división temporal — sin filtrar datos futuros.", color: "#00FF88" },
+                  { text: "Entrenado con 1,08 millones de facturas reales con división temporal — sin filtrar datos futuros.", color: "#00FF88" },
                   { text: "Validado contra ground truth real de cm_auditoria_motivos_glosas de la BD de producción.", color: "#00D4FF" },
                   { text: "Cada predicción incluye SHAP top-5 — el auditor sabe exactamente por qué el modelo lo marcó.", color: "#0066FF" },
                 ].map((item, i) => (
@@ -69,7 +71,7 @@ export default function Resultados() {
         <FadeIn>
           <div className="rounded-2xl p-8 mb-5" style={{ background: "#10111A", border: "1px solid #1C1E2E" }}>
             <p style={{ fontFamily: "var(--font-code)", fontSize: "0.65rem", color: "#3D4461", marginBottom: "1.75rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-              XGBoost v1 (baseline) vs. XGBoost v2 (optimizado para Recall Glosada)
+              Modelo anterior (datos hasta jul-2025) vs. LightGBM v3 (datos frescos hasta may-2026)
             </p>
             <div className="space-y-7">
               {bars.map((b) => (
@@ -91,8 +93,8 @@ export default function Resultados() {
                       style={{ background: `linear-gradient(90deg, ${b.color}60, ${b.color})` }} />
                   </div>
                   <div className="flex gap-5 mt-1.5">
-                    <span style={{ fontSize: "0.62rem", color: "#3D4461", fontFamily: "var(--font-code)" }}>v1: {b.v1}%</span>
-                    <span style={{ fontSize: "0.62rem", color: b.color, fontFamily: "var(--font-code)" }}>v2: {b.v2}% {b.v2 > b.v1 ? "↑" : "→"}</span>
+                    <span style={{ fontSize: "0.62rem", color: "#3D4461", fontFamily: "var(--font-code)" }}>anterior: {b.v1}%</span>
+                    <span style={{ fontSize: "0.62rem", color: b.color, fontFamily: "var(--font-code)" }}>v3: {b.v2}% {b.v2 > b.v1 ? "↑" : "→"}</span>
                   </div>
                 </div>
               ))}
@@ -102,7 +104,7 @@ export default function Resultados() {
 
         <FadeIn>
           <p style={{ fontSize: "0.65rem", color: "#3D4461", textAlign: "center", fontFamily: "var(--font-code)", letterSpacing: "0.05em" }}>
-            633.180 facturas · División temporal mar-2024 / ago-2025 · Validación OOT ago–dic 2025 · RANDOM_STATE=42
+            1.084.637 facturas · División temporal mar-2024 → may-2026 · Validación out-of-time abr–may 2026 · RANDOM_STATE=42
           </p>
         </FadeIn>
 

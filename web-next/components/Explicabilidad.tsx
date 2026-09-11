@@ -3,15 +3,16 @@ import { motion } from "framer-motion";
 import { UserCheck, Brain } from "lucide-react";
 import FadeIn from "./FadeIn";
 
+// Importancia SHAP global real del campeón v3 (LightGBM), reports/evaluations/20260910_shap_importance.json
 const shapFeatures = [
-  { name: "vr_factura",            impact: 92, dir: "+",   color: "#FF4466",  label: "Valor total de la factura" },
-  { name: "log_vr_factura",        impact: 78, dir: "+",   color: "#FF4466",  label: "Transformación logarítmica del valor" },
-  { name: "dias_estancia",         impact: 64, dir: "+",   color: "#FFB300",  label: "Días de hospitalización" },
-  { name: "flag_alta_complejidad", impact: 55, dir: "+",   color: "#FFB300",  label: "Flag de alta complejidad clínica" },
-  { name: "codigo_dx_principal",   impact: 48, dir: "+/-", color: "#00D4FF",  label: "Código diagnóstico CIE-10" },
-  { name: "num_procedimientos",    impact: 41, dir: "+",   color: "#FFB300",  label: "Número de procedimientos" },
-  { name: "tipo_usuario",          impact: 34, dir: "+/-", color: "#8B5CF6",  label: "Tipo de usuario (contributivo/subsidiado)" },
-  { name: "edad_paciente",         impact: 28, dir: "+/-", color: "#8892B0",  label: "Edad del paciente" },
+  { name: "log_num_items_con_autorizacion", impact: 100, dir: "+",   color: "#FF4466",  label: "Ítems con autorización previa (log)" },
+  { name: "log_num_dx_distintos",           impact: 84,  dir: "+",   color: "#FF4466",  label: "Diversidad diagnóstica (log)" },
+  { name: "log_valor_x_tasa_glosa",         impact: 42,  dir: "+",   color: "#FFB300",  label: "Riesgo compuesto: valor × tasa de glosa del prestador" },
+  { name: "tasa_devolucion_nit",            impact: 34,  dir: "+",   color: "#FFB300",  label: "Tasa histórica de devoluciones del prestador" },
+  { name: "num_items_con_autorizacion",     impact: 29,  dir: "+",   color: "#00D4FF",  label: "Ítems con autorización previa" },
+  { name: "num_tipos_servicio",             impact: 27,  dir: "+/-", color: "#00D4FF",  label: "Diversidad de tipos de servicio" },
+  { name: "num_dx_distintos",               impact: 25,  dir: "+",   color: "#8B5CF6",  label: "Número de diagnósticos distintos" },
+  { name: "tasa_glosa_nit",                 impact: 18,  dir: "+",   color: "#8892B0",  label: "Tasa histórica de glosas del prestador" },
 ];
 
 export default function Explicabilidad() {
@@ -136,9 +137,9 @@ export default function Explicabilidad() {
                 </p>
                 <div style={{ fontSize: "0.72rem", color: "#8892B0", lineHeight: 2 }}>
                   <span style={{ color: "#8892B0" }}>"shap_top5"</span>: [<br />
-                  &nbsp;&nbsp;{"{"}<span style={{ color: "#8892B0" }}>"feature"</span>: <span style={{ color: "#FFB300" }}>"vr_factura"</span>, <span style={{ color: "#8892B0" }}>"impact"</span>: <span style={{ color: "#FF4466" }}>+0.42</span>{"}"}, <br />
-                  &nbsp;&nbsp;{"{"}<span style={{ color: "#8892B0" }}>"feature"</span>: <span style={{ color: "#FFB300" }}>"dias_estancia"</span>, <span style={{ color: "#8892B0" }}>"impact"</span>: <span style={{ color: "#FF4466" }}>+0.21</span>{"}"}, <br />
-                  &nbsp;&nbsp;{"{"}<span style={{ color: "#8892B0" }}>"feature"</span>: <span style={{ color: "#FFB300" }}>"flag_alta_complejidad"</span>, <span style={{ color: "#8892B0" }}>"impact"</span>: <span style={{ color: "#FF4466" }}>+0.18</span>{"}"}<br />
+                  &nbsp;&nbsp;{"{"}<span style={{ color: "#8892B0" }}>"feature"</span>: <span style={{ color: "#FFB300" }}>"log_num_items_con_autorizacion"</span>, <span style={{ color: "#8892B0" }}>"impact"</span>: <span style={{ color: "#FF4466" }}>+0.38</span>{"}"}, <br />
+                  &nbsp;&nbsp;{"{"}<span style={{ color: "#8892B0" }}>"feature"</span>: <span style={{ color: "#FFB300" }}>"log_num_dx_distintos"</span>, <span style={{ color: "#8892B0" }}>"impact"</span>: <span style={{ color: "#FF4466" }}>+0.32</span>{"}"}, <br />
+                  &nbsp;&nbsp;{"{"}<span style={{ color: "#8892B0" }}>"feature"</span>: <span style={{ color: "#FFB300" }}>"tasa_devolucion_nit"</span>, <span style={{ color: "#8892B0" }}>"impact"</span>: <span style={{ color: "#FF4466" }}>+0.13</span>{"}"}<br />
                   ]
                 </div>
               </div>
