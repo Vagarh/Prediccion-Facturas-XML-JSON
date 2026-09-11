@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { champion, pct } from "@/lib/metrics";
 
 const links = [
   { href: "#problema",      label: "Problema" },
@@ -10,7 +12,6 @@ const links = [
   { href: "#explicabilidad",label: "SHAP" },
   { href: "#arquitectura",  label: "Arquitectura" },
   { href: "#ventajas",      label: "Alcance" },
-  { href: "#futuro",        label: "Qué sigue" },
 ];
 
 export default function Nav() {
@@ -61,6 +62,13 @@ export default function Nav() {
                 {l.label}
               </a>
             ))}
+            <Link
+              href="/experimentos"
+              className="text-sm transition-colors duration-200"
+              style={{ color: "#00D4FF", textDecoration: "none", fontWeight: 600, fontSize: "0.82rem" }}
+            >
+              Datos y entrenamientos
+            </Link>
           </div>
 
           {/* Status badge */}
@@ -75,7 +83,7 @@ export default function Nav() {
             }}
           >
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00FF88", display: "inline-block" }} />
-            Recall 86.4%
+            Recall {pct(champion.test.recallGlosada)}
           </span>
 
           {/* Mobile toggle */}
@@ -111,6 +119,13 @@ export default function Nav() {
                 {l.label}
               </a>
             ))}
+            <Link
+              href="/experimentos"
+              onClick={() => setOpen(false)}
+              style={{ color: "#00D4FF", textDecoration: "none", fontWeight: 600, fontSize: "0.95rem" }}
+            >
+              Datos y entrenamientos
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>

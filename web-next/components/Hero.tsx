@@ -1,12 +1,13 @@
 "use client";
 import { motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
+import { champion, compact, dataset, pct } from "@/lib/metrics";
 
 const metrics = [
-  { value: "1.08M",  label: "Facturas reales analizadas",       color: "#00D4FF" },
-  { value: "86.4%",  label: "Glosas detectadas antes de pagar", color: "#00FF88" },
-  { value: "0.9060", label: "AUC-ROC",                          color: "#0066FF" },
-  { value: "48",     label: "Variables de entrada al modelo",   color: "#8B5CF6" },
+  { value: compact(dataset.totalInvoices), label: "Facturas reales analizadas",       color: "#00D4FF" },
+  { value: pct(champion.test.recallGlosada), label: "Glosas detectadas antes de pagar", color: "#00FF88" },
+  { value: champion.test.aucRocOvr.toFixed(4), label: "AUC-ROC",                       color: "#0066FF" },
+  { value: String(dataset.featureCount), label: "Variables de entrada al modelo",      color: "#8B5CF6" },
 ];
 
 export default function Hero() {
@@ -44,8 +45,8 @@ export default function Hero() {
           style={{ fontSize: "clamp(1rem, 2vw, 1.18rem)", color: "#8892B0", maxWidth: 600, margin: "0 auto 2.5rem", lineHeight: 1.78 }}
         >
           Un sistema de predicción entrenado con{" "}
-          <strong style={{ color: "#F0F2FF" }}>1,08 millones de facturas reales</strong> de Savia Salud EPS.
-          Detecta el <strong style={{ color: "#00FF88" }}>86.4%</strong> de las facturas problemáticas
+          <strong style={{ color: "#F0F2FF" }}>{compact(dataset.totalInvoices)} de facturas reales</strong> de Savia Salud EPS.
+          Detecta el <strong style={{ color: "#00FF88" }}>{pct(champion.test.recallGlosada)}</strong> de las facturas problemáticas
           en el momento de radicación — sin intervención humana previa.
         </motion.p>
 

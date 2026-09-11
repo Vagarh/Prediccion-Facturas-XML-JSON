@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Database, Shield, Cpu, GitBranch, FileText, CheckCircle2 } from "lucide-react";
 import FadeIn from "./FadeIn";
+import { champion, compact, dataset, overallClassShare, pct } from "@/lib/metrics";
 
 export default function Solucion() {
   return (
@@ -47,10 +48,10 @@ export default function Solucion() {
                 {
                   step: "Feature Engineering",
                   icon: <Cpu size={16} />, color: "#00D4FF",
-                  items: ["48 variables construidas", "Log-transforms del valor", "Flags de riesgo binarios", "Interacciones cruzadas"],
+                  items: [`${dataset.featureCount} variables construidas`, "Log-transforms del valor", "Flags de riesgo binarios", "Interacciones cruzadas"],
                 },
                 {
-                  step: "LightGBM v3",
+                  step: `${champion.algorithm} ${champion.version}`,
                   icon: <GitBranch size={16} />, color: "#0066FF",
                   items: ["Clasificación multiclase", "Auditada / Glosada / Devuelta", "Calibración de probabilidades", "SHAP en tiempo real"],
                 },
@@ -125,13 +126,13 @@ export default function Solucion() {
         <FadeIn>
           <div className="rounded-2xl p-8" style={{ background: "#0C0D12", border: "1px solid #1C1E2E" }}>
             <p style={{ fontFamily: "var(--font-code)", fontSize: "0.65rem", color: "#3D4461", marginBottom: "1.5rem", textAlign: "center", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-              El modelo predice 3 categorías · Distribución real en 1.08M facturas
+              El modelo predice 3 categorías · Distribución real en {compact(dataset.totalInvoices)} de facturas
             </p>
             <div className="grid md:grid-cols-3 gap-4">
               {[
-                { label: "Auditada",  pct: "19%", color: "#00D4FF", bg: "rgba(0,212,255,0.06)", desc: "Cumple requisitos. Pasa auditoría estándar." },
-                { label: "Glosada",   pct: "66%", color: "#FF4466", bg: "rgba(255,68,102,0.06)", desc: "Tiene errores. Se objeta total o parcialmente." },
-                { label: "Devuelta",  pct: "14%", color: "#FFB300", bg: "rgba(255,179,0,0.06)",  desc: "Incompleta. Se regresa al prestador a corregir." },
+                { label: "Auditada",  pct: pct(overallClassShare.Auditada), color: "#00D4FF", bg: "rgba(0,212,255,0.06)", desc: "Cumple requisitos. Pasa auditoría estándar." },
+                { label: "Glosada",   pct: pct(overallClassShare.Glosada),  color: "#FF4466", bg: "rgba(255,68,102,0.06)", desc: "Tiene errores. Se objeta total o parcialmente." },
+                { label: "Devuelta",  pct: pct(overallClassShare.Devuelta), color: "#FFB300", bg: "rgba(255,179,0,0.06)",  desc: "Incompleta. Se regresa al prestador a corregir." },
               ].map((c) => (
                 <div key={c.label} className="rounded-xl p-6 text-center"
                   style={{ background: c.bg, border: `1px solid ${c.color}20` }}>

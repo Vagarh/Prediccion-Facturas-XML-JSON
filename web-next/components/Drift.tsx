@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, RefreshCw, Activity } from "lucide-react";
 import FadeIn from "./FadeIn";
+import { drift } from "@/lib/metrics";
 
 const driftMetrics = [
   { label: "PSI threshold",         value: "0.20", note: "Population Stability Index",    color: "#FFB300" },
@@ -69,13 +70,13 @@ export default function Drift() {
                 <div>
                   <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>Alerta de Drift Detectado (real)</p>
                   <p style={{ color: "#8892B0", fontSize: "0.7rem", fontFamily: "var(--font-code)", marginTop: 2 }}>
-                    2026-09-10 · 10 de 48 features afectadas · PSI medio 0.25
+                    {drift.counts.alert} de {drift.nFeatures} features afectadas · PSI medio {drift.meanPsi.toFixed(2)}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2.5 mb-6">
-                {["total_facturas_nit (PSI: 3.30)", "tiene_fev (PSI: 1.38)", "dias_radicacion_promedio_nit (PSI: 0.94)"].map((f) => (
+                {drift.top.slice(0, 3).map((d) => `${d.name} (PSI: ${d.psi.toFixed(2)})`).map((f) => (
                   <div
                     key={f}
                     className="flex items-center justify-between rounded-xl px-4 py-2.5"

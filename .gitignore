@@ -14,7 +14,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# Anclado a la raíz: sin la barra inicial también ignoraba web-next/lib/,
+# que contiene código fuente del dashboard y es necesario para el build de Vercel.
+/lib/
 lib64/
 parts/
 sdist/
