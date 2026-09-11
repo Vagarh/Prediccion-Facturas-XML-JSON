@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync:metrics": "python ../Codigo/scripts/sync_dashboard_data.py --prefix 20260910"
   },
   "dependencies": {
     "clsx": "^2.1.1",

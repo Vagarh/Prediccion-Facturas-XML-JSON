@@ -101,6 +101,19 @@ comparativa de modelos → selección de campeón → SHAP → API → dashboard
 - Dashboard (`web-next/`): Hero, Resultados (reenfocado en estabilidad OOT, no solo el número),
   Drift (PSI y fechas reales), Solucion, Ventajas, Arquitectura, Explicabilidad (SHAP real), Nav,
   Footer y meta de `layout.tsx` — todos actualizados; build verificado sin errores
+
+**Capa de datos del dashboard (refactor posterior):**
+- `scripts/sync_dashboard_data.py` consolida `reports/**` + los parquet de splits en
+  `web-next/data/metrics.json` (versionado). **Regla: ninguna cifra del sitio se escribe a mano**;
+  si cambia un número se reentrena y se re-ejecuta el script (`npm run sync:metrics`).
+  Necesario porque `/Codigo/reports/` está gitignored y Vercel construye desde GitHub.
+- `web-next/lib/metrics.ts`: tipos + accesores (`pct`, `num`, `compact`, `duration`, `rangeLabel`).
+  Los componentes de la landing ya no hardcodean métricas.
+- Ruta nueva `/experimentos`: dataset y splits temporales, suite comparativa de 6 modelos con la
+  regla de desempate, matriz de confusión e hiperparámetros por modelo (interactivo), PSI e
+  historial v1→v2→v3. Componentes en `web-next/components/lab/`.
+- ⚠️ `.gitignore` raíz: `lib/` se ancló a `/lib/` — sin anclar también ignoraba `web-next/lib/`,
+  lo que habría roto el build de Vercel.
 - Tesis (`main.tex`): resumen ES/EN, nueva sección de suite comparativa v3, métricas detalladas del
   campeón, discusión (subsección de validación empírica del ciclo MLOps), conclusiones y
   recomendaciones — actualizados

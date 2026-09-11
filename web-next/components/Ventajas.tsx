@@ -2,11 +2,19 @@
 import { motion } from "framer-motion";
 import { CheckCircle2, XCircle } from "lucide-react";
 import FadeIn from "./FadeIn";
+import { compact, dataset } from "@/lib/metrics";
+
+/** Meses cubiertos por la ventana de datos, calculados de los extremos reales. */
+const monthsCovered = (() => {
+  const [ys, ms] = dataset.windowStart.split("-").map(Number);
+  const [ye, me] = dataset.windowEnd.split("-").map(Number);
+  return (ye - ys) * 12 + (me - ms) + 1;
+})();
 
 const ventajas = [
   {
     title: "Datos reales de producción",
-    desc: "1,08 millones de facturas de 26 meses reales de Savia Salud EPS. No hay datos sintéticos ni simulaciones.",
+    desc: `${compact(dataset.totalInvoices)} de facturas de ${monthsCovered} meses reales de Savia Salud EPS. No hay datos sintéticos ni simulaciones.`,
     color: "#00FF88",
   },
   {
@@ -136,9 +144,9 @@ export default function Ventajas() {
         <FadeIn>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { v: "16",    label: "Meses de datos reales",       color: "#00D4FF" },
+              { v: String(monthsCovered), label: "Meses de datos reales",  color: "#00D4FF" },
               { v: "554",   label: "Tablas de BD mapeadas",       color: "#8B5CF6" },
-              { v: "48",    label: "Variables de entrada",        color: "#0066FF" },
+              { v: String(dataset.featureCount), label: "Variables de entrada", color: "#0066FF" },
               { v: "100%",  label: "Local · sin datos a la nube", color: "#00FF88" },
             ].map((s) => (
               <div key={s.label} className="rounded-xl p-5 text-center"

@@ -2,12 +2,19 @@
 import { motion } from "framer-motion";
 import { CheckCircle2, TrendingUp, Target } from "lucide-react";
 import FadeIn from "./FadeIn";
+import { champion, compact, dataset, num, pct, rangeLabel } from "@/lib/metrics";
 
+const testSplit = dataset.splits.find((s) => s.id === "test")!;
+const ootSplit = dataset.splits.find((s) => s.id === "oot")!;
+const p1 = (v: number) => Number((v * 100).toFixed(1));
+
+// v1 son las cifras publicadas del modelo de marzo de 2026 sobre su propia
+// ventana; el resto se lee del campeón actual.
 const bars = [
-  { label: "Recall Glosada — prueba (feb-mar 2026)",              v1: 72.1, v2: 86.4, color: "#00FF88", key: "recall_test" },
-  { label: "Recall Glosada — 2 meses después (out-of-time)",      v1: 53.9, v2: 86.0, color: "#00FF88", key: "recall_oot" },
-  { label: "F1-macro — prueba",                                    v1: 74.3, v2: 75.8, color: "#00D4FF", key: "f1_test" },
-  { label: "F1-macro — 2 meses después (out-of-time)",             v1: 59.4, v2: 72.4, color: "#00D4FF", key: "f1_oot" },
+  { label: `Recall Glosada — prueba (${rangeLabel(testSplit)})`, v1: 72.1, v2: p1(champion.test.recallGlosada), color: "#00FF88", key: "recall_test" },
+  { label: "Recall Glosada — 2 meses después (out-of-time)",     v1: 53.9, v2: p1(champion.oot.recallGlosada),  color: "#00FF88", key: "recall_oot" },
+  { label: "F1-macro — prueba",                                   v1: 74.3, v2: p1(champion.test.f1Macro),      color: "#00D4FF", key: "f1_test" },
+  { label: "F1-macro — 2 meses después (out-of-time)",            v1: 59.4, v2: p1(champion.oot.f1Macro),       color: "#00D4FF", key: "f1_oot" },
 ];
 
 export default function Resultados() {
@@ -24,9 +31,9 @@ export default function Resultados() {
           </h2>
           <p style={{ color: "#8892B0", fontSize: "1.05rem", maxWidth: 580, margin: "0 auto", lineHeight: 1.78 }}>
             La meta era detectar al menos el 80% de las facturas glosadas.
-            El modelo v3 llega al{" "}
-            <strong style={{ color: "#00FF88" }}>86.4%</strong> en prueba y sigue en{" "}
-            <strong style={{ color: "#00FF88" }}>86.0%</strong> dos meses después, sin la caída que
+            El modelo {champion.version} llega al{" "}
+            <strong style={{ color: "#00FF88" }}>{pct(champion.test.recallGlosada)}</strong> en prueba y sigue en{" "}
+            <strong style={{ color: "#00FF88" }}>{pct(champion.oot.recallGlosada)}</strong> dos meses después, sin la caída que
             sufría la versión anterior fuera de su ventana de entrenamiento.
           </p>
         </FadeIn>
@@ -43,7 +50,7 @@ export default function Resultados() {
                   <span style={{ fontFamily: "var(--font-code)", fontSize: "0.65rem", color: "#00FF88", letterSpacing: "0.1em" }}>META SUPERADA</span>
                 </div>
                 <p style={{ fontFamily: "var(--font-code)", fontSize: "clamp(3.5rem, 9vw, 6rem)", fontWeight: 700, color: "#00FF88", lineHeight: 1, letterSpacing: "-0.04em" }}>
-                  86.4%
+                  {pct(champion.test.recallGlosada)}
                 </p>
                 <p style={{ color: "#8892B0", fontSize: "0.9rem", marginTop: "0.5rem" }}>
                   Recall Glosada{" "}
@@ -52,7 +59,7 @@ export default function Resultados() {
               </div>
               <div className="flex-1 space-y-3 w-full">
                 {[
-                  { text: "Entrenado con 1,08 millones de facturas reales con división temporal — sin filtrar datos futuros.", color: "#00FF88" },
+                  { text: `Entrenado con ${compact(dataset.totalInvoices)} de facturas reales con división temporal — sin filtrar datos futuros.`, color: "#00FF88" },
                   { text: "Validado contra ground truth real de cm_auditoria_motivos_glosas de la BD de producción.", color: "#00D4FF" },
                   { text: "Cada predicción incluye SHAP top-5 — el auditor sabe exactamente por qué el modelo lo marcó.", color: "#0066FF" },
                 ].map((item, i) => (
@@ -104,7 +111,7 @@ export default function Resultados() {
 
         <FadeIn>
           <p style={{ fontSize: "0.65rem", color: "#3D4461", textAlign: "center", fontFamily: "var(--font-code)", letterSpacing: "0.05em" }}>
-            1.084.637 facturas · División temporal mar-2024 → may-2026 · Validación out-of-time abr–may 2026 · RANDOM_STATE=42
+            {num(dataset.totalInvoices)} facturas · División temporal {rangeLabel({ start: dataset.windowStart, end: dataset.windowEnd })} · Validación out-of-time {rangeLabel(ootSplit)} · RANDOM_STATE=42
           </p>
         </FadeIn>
 

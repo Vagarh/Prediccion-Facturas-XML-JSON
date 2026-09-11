@@ -2,18 +2,32 @@
 import { motion } from "framer-motion";
 import { UserCheck, Brain } from "lucide-react";
 import FadeIn from "./FadeIn";
+import { shap } from "@/lib/metrics";
 
-// Importancia SHAP global real del campeón v3 (LightGBM), reports/evaluations/20260910_shap_importance.json
-const shapFeatures = [
-  { name: "log_num_items_con_autorizacion", impact: 100, dir: "+",   color: "#FF4466",  label: "Ítems con autorización previa (log)" },
-  { name: "log_num_dx_distintos",           impact: 84,  dir: "+",   color: "#FF4466",  label: "Diversidad diagnóstica (log)" },
-  { name: "log_valor_x_tasa_glosa",         impact: 42,  dir: "+",   color: "#FFB300",  label: "Riesgo compuesto: valor × tasa de glosa del prestador" },
-  { name: "tasa_devolucion_nit",            impact: 34,  dir: "+",   color: "#FFB300",  label: "Tasa histórica de devoluciones del prestador" },
-  { name: "num_items_con_autorizacion",     impact: 29,  dir: "+",   color: "#00D4FF",  label: "Ítems con autorización previa" },
-  { name: "num_tipos_servicio",             impact: 27,  dir: "+/-", color: "#00D4FF",  label: "Diversidad de tipos de servicio" },
-  { name: "num_dx_distintos",               impact: 25,  dir: "+",   color: "#8B5CF6",  label: "Número de diagnósticos distintos" },
-  { name: "tasa_glosa_nit",                 impact: 18,  dir: "+",   color: "#8892B0",  label: "Tasa histórica de glosas del prestador" },
-];
+// Glosario legible de las variables del modelo. La importancia NO se escribe
+// aquí: se deriva de la importancia SHAP global real del campeón.
+const FEATURE_LABELS: Record<string, { label: string; dir: string }> = {
+  log_num_items_con_autorizacion: { label: "Ítems con autorización previa (log)", dir: "+" },
+  log_num_dx_distintos: { label: "Diversidad diagnóstica (log)", dir: "+" },
+  log_valor_x_tasa_glosa: { label: "Riesgo compuesto: valor × tasa de glosa del prestador", dir: "+" },
+  tasa_devolucion_nit: { label: "Tasa histórica de devoluciones del prestador", dir: "+" },
+  num_items_con_autorizacion: { label: "Ítems con autorización previa", dir: "+" },
+  num_tipos_servicio: { label: "Diversidad de tipos de servicio", dir: "+/-" },
+  num_dx_distintos: { label: "Número de diagnósticos distintos", dir: "+" },
+  tasa_glosa_nit: { label: "Tasa histórica de glosas del prestador", dir: "+" },
+};
+
+const RAMP = ["#FF4466", "#FF4466", "#FFB300", "#FFB300", "#00D4FF", "#00D4FF", "#8B5CF6", "#8892B0"];
+
+const top = shap.global.slice(0, 8);
+const maxImpact = top[0]?.value ?? 1;
+const shapFeatures = top.map((entry, i) => ({
+  name: entry.feature,
+  impact: Math.round((entry.value / maxImpact) * 100),
+  dir: FEATURE_LABELS[entry.feature]?.dir ?? "+",
+  color: RAMP[i] ?? "#8892B0",
+  label: FEATURE_LABELS[entry.feature]?.label ?? entry.feature,
+}));
 
 export default function Explicabilidad() {
   return (
