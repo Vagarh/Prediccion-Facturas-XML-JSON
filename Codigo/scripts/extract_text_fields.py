@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 
 # ---------------------------------------------------------------------------
 # Configuración
@@ -38,27 +38,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data" / "processed"
 LOG_DIR = BASE_DIR / "reports"
 
-# Credenciales BD (igual que notebooks)
-DB_CONFIG: dict[str, Any] = {
-    "user": "jcardonr",
-    "password": "6nxx2yVWaKXyiF1cZbfS*",
-    "host": "10.250.5.36",
-    "port": "3306",
-    "db_name": "system_savia",
-}
+sys.path.insert(0, str(BASE_DIR))
 
-# Parquets de entrada
-SPLITS = {
-    "train": DATA_DIR / "20260309_train.parquet",
-    "val":   DATA_DIR / "20260309_val.parquet",
-    "test":  DATA_DIR / "20260309_test.parquet",
-}
+ALL_SPLITS = ("train", "val", "test", "oot")
 
-# Parquets de salida (NO sobreescriben el original)
-OUTPUT_SPLITS = {
-    split: DATA_DIR / f"20260309_{split}_enriched.parquet"
-    for split in SPLITS
-}
+
+def build_split_paths(prefix: str, splits: tuple[str, ...]) -> tuple[dict[str, Path], dict[str, Path]]:
+    """Devuelve (entradas, salidas) de parquet para el prefijo y splits dados."""
+    inputs = {s: DATA_DIR / f"{prefix}_{s}.parquet" for s in splits}
+    outputs = {s: DATA_DIR / f"{prefix}_{s}_enriched.parquet" for s in splits}
+    return inputs, outputs
+
+
+# Compatibilidad hacia atrás (prefijo del dataset v2)
+SPLITS, OUTPUT_SPLITS = build_split_paths("20260309", ("train", "val", "test"))
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -145,39 +138,21 @@ GROUP BY f.id
 
 
 def build_engine():
-    """Crea el motor SQLAlchemy con las credenciales configuradas.
+    """Crea el motor SQLAlchemy leyendo credenciales de ``Codigo/.env`` (``src.db``).
 
     Returns:
         Engine de SQLAlchemy listo para usar.
     """
-    cfg = DB_CONFIG
-    url = f"mysql+pymysql://{cfg['user']}:{cfg['password']}@{cfg['host']}:{cfg['port']}/{cfg['db_name']}"
-    engine = create_engine(
-        url,
-        connect_args={"connect_timeout": 60},
-        pool_pre_ping=True,
-    )
-    logger.info("Motor SQLAlchemy creado: %s:%s/%s", cfg["host"], cfg["port"], cfg["db_name"])
-    return engine
+    from src.db import get_engine
+
+    return get_engine(connect_timeout=60)
 
 
 def test_connection(engine) -> bool:
-    """Verifica que la conexión a la BD está activa.
+    """Verifica que la conexión a la BD está activa."""
+    from src.db import check_connection
 
-    Args:
-        engine: Motor SQLAlchemy.
-
-    Returns:
-        True si la conexión es exitosa.
-    """
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        logger.info("Conexion a BD verificada correctamente.")
-        return True
-    except Exception as exc:
-        logger.error("Fallo en la conexion a BD: %s", exc)
-        return False
+    return check_connection(engine)
 
 
 def extract_text_fields_chunk(
@@ -384,11 +359,16 @@ def parse_args() -> argparse.Namespace:
         help="Número de factura_ids por query a la BD (default: 5000).",
     )
     parser.add_argument(
+        "--prefix",
+        default="20260309",
+        help="Prefijo de fecha de los parquets a enriquecer (default: 20260309).",
+    )
+    parser.add_argument(
         "--splits",
         nargs="+",
-        choices=["train", "val", "test"],
+        choices=list(ALL_SPLITS),
         default=["train", "val", "test"],
-        help="Splits a procesar (default: todos).",
+        help="Splits a procesar (default: train val test).",
     )
     return parser.parse_args()
 
@@ -396,11 +376,13 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """Punto de entrada principal."""
     args = parse_args()
+    split_inputs, split_outputs = build_split_paths(args.prefix, tuple(args.splits))
 
     logger.info("=" * 70)
     logger.info("EXTRACCIÓN DE CAMPOS TEXTUALES — Savia Salud EPS")
     logger.info("Inicio: %s", datetime.now().isoformat())
-    logger.info("dry_run=%s | chunk_size=%d | splits=%s", args.dry_run, args.chunk_size, args.splits)
+    logger.info("prefix=%s | dry_run=%s | chunk_size=%d | splits=%s",
+                args.prefix, args.dry_run, args.chunk_size, args.splits)
     logger.info("Log: %s", log_file)
     logger.info("=" * 70)
 
@@ -412,7 +394,7 @@ def main() -> None:
 
     # Verificar que los parquets de entrada existen
     for split in args.splits:
-        path = SPLITS[split]
+        path = split_inputs[split]
         if not path.exists():
             logger.error("Parquet de entrada no encontrado: %s", path)
             sys.exit(1)
@@ -424,8 +406,8 @@ def main() -> None:
         try:
             stats = enrich_parquet(
                 split_name=split,
-                input_path=SPLITS[split],
-                output_path=OUTPUT_SPLITS[split],
+                input_path=split_inputs[split],
+                output_path=split_outputs[split],
                 engine=engine,
                 chunk_size=args.chunk_size,
                 dry_run=args.dry_run,
