@@ -24,7 +24,14 @@
 \usepackage{hyperref} % Para enlaces y marcadores
 
 \pgfplotsset{compat=1.18}
-\usetikzlibrary{shapes.geometric, shapes.symbols, arrows, positioning, babel}
+\usetikzlibrary{shapes.geometric, shapes.symbols, arrows, positioning, babel, calc}
+
+% --- Control de desbordes horizontales ---
+% Holgura adicional para párrafos con identificadores técnicos largos
+% (nombres de tablas/variables en \texttt) que no admiten guionado.
+\emergencystretch=3em
+% Permite punto de corte dentro de identificadores largos: \idbreak{cm_auditoria_motivos_glosas}
+\newcommand{\idb}{\discretionary{}{}{}}
 
 % --- Definición de Colores ---
 \definecolor{minsalud}{RGB}{0, 72, 132} % Azul institucional
@@ -65,7 +72,7 @@
     Proyecto de Grado \\
     \vfill
     \textbf{Asesor:} \\
-    \relax [Nombre del Asesor a definir] \\
+    \relax {Jorge Ivan Padilla Buritica} \\
     \vfill
     UNIVERSIDAD EAFIT  \\
     ESCUELA DE CIENCIAS APLICADAS E INGENIERÍA  \\
@@ -387,22 +394,26 @@ La arquitectura definida por el Ministerio de Salud se fundamenta en un modelo d
 \centering
 \resizebox{0.95\textwidth}{!}{
 \begin{tikzpicture}[
-    box/.style={rectangle, draw=minsalud, thick, fill=blue!10, minimum width=2.5cm, minimum height=0.9cm, align=center, font=\small},
-    arrow/.style={-stealth, thick}
+    % text width fija el ancho de caja: sin ella el rótulo más largo ensanchaba
+    % los nodos hasta solaparse con las etiquetas de las flechas.
+    box/.style={rectangle, draw=minsalud, thick, fill=blue!10, text width=3.1cm,
+                minimum height=0.9cm, align=center, font=\small},
+    arrow/.style={-stealth, thick},
+    elabel/.style={font=\footnotesize, fill=white, inner sep=2pt}
 ]
-% Nodos
-\node[box] (xml) at (0,2) {XML\\(Dimensión Financiera)};
-\node[box] (json) at (5.5,2) {JSON\\(Dimensión Asistencial)};
-\node[box] (cuv) at (2.75,0) {CUV\\(Puente de Validación)};
-\node[box] (dian) at (-2,0) {DIAN\\(CUFE)};
-\node[box] (eps) at (7.5,0) {EPS\\(Radicación)};
+% Nodos — separación holgada para que quepan las etiquetas de arista
+\node[box] (xml)  at (-3,2.8) {XML\\(Dimensión Financiera)};
+\node[box] (json) at ( 3,2.8) {JSON\\(Dimensión Asistencial)};
+\node[box] (cuv)  at ( 0,0)   {CUV\\(Puente de Validación)};
+\node[box] (dian) at (-6,0)   {DIAN\\(CUFE)};
+\node[box] (eps)  at ( 6,0)   {EPS\\(Radicación)};
 
 % Flechas
-\draw[arrow] (xml) -- (cuv) node[midway, left, font=\footnotesize] {Extensión Salud};
-\draw[arrow] (json) -- (cuv) node[midway, right, font=\footnotesize] {RIPS Validado};
-\draw[arrow] (xml) -- (dian) node[midway, above, font=\footnotesize] {Validación Fiscal};
-\draw[arrow] (dian) -- (cuv) node[midway, below, font=\footnotesize] {CUFE};
-\draw[arrow] (cuv) -- (eps) node[midway, below, font=\footnotesize] {CUV + Soportes};
+\draw[arrow] (xml)  -- node[elabel, pos=0.55] {Extensión Salud} (cuv);
+\draw[arrow] (json) -- node[elabel, pos=0.55] {RIPS Validado}   (cuv);
+\draw[arrow] (xml)  -- node[elabel, pos=0.5]  {Validación Fiscal} (dian);
+\draw[arrow] (dian) -- node[elabel, below] {CUFE} (cuv);
+\draw[arrow] (cuv)  -- node[elabel, below] {CUV + Soportes} (eps);
 \end{tikzpicture}
 }
 \caption{Arquitectura de Dualidad Tecnológica FEV-RIPS}
@@ -607,18 +618,24 @@ El modelo FEV-RIPS habilita capacidades de vigilancia epidemiológica sin preced
     nodes near coords,
     nodes near coords align={vertical},
     ymin=0,
-    ymax=50,
-    width=10cm,
+    ymax=52,
+    width=11cm,
     height=5.5cm,
-    legend style={font=\small, at={(0.5,-0.25)}, anchor=north, legend columns=-1}
+    xlabel style={yshift=-2pt},
+    ylabel style={yshift=2pt},
+    enlarge x limits=0.15
 ]
+% Serie única: la evolución del rezago año a año. (Antes se graficaban dos
+% series idénticas rotuladas como modelos distintos, lo que sugería una
+% comparación inexistente.)
 \addplot[fill=minsalud!70] coordinates {(2020,45) (2021,40) (2022,35) (2023,15) (2024,1)};
-\addplot[fill=accent!70] coordinates {(2020,45) (2021,40) (2022,35) (2023,15) (2024,1)};
-\legend{Modelo Anterior, Modelo FEV-RIPS}
 \end{axis}
 \end{tikzpicture}
 }
-\caption{Reducción del tiempo de disponibilidad de datos de salud}
+\caption{Evolución del tiempo de disponibilidad de los datos de salud tras la
+adopción progresiva del modelo FEV-RIPS. Los valores son estimaciones
+indicativas del rezago operativo declarado por el sector, no mediciones
+propias de este trabajo.}
 \label{fig:tiempo}
 \end{figure}
 
@@ -834,14 +851,15 @@ Fase de recolección inicial y exploración de fuentes de datos:
 \centering
 \caption{Fuentes de datos y características técnicas}
 \label{tab:fuentes}
-\begin{tabular}{@{}p{3cm}p{3cm}p{4cm}p{3cm}@{}}
+\small
+\begin{tabular}{@{}p{2.7cm}p{4.1cm}p{4.2cm}p{3.1cm}@{}}
 \toprule
-\textbf{Fuente} & \textbf{Formato} & \textbf{Contenido} & \textbf{Volumen Est.} \\
+\textbf{Fuente} & \textbf{Tabla MySQL} & \textbf{Contenido} & \textbf{Volumen Est.} \\
 \midrule
-Cabecera de Factura & MySQL (\texttt{cm\_facturas}) & Valores, prestador, contrato, régimen, FEV & $\sim$40,000 facturas/mes \\
-Detalle de Servicios & MySQL (\texttt{cm\_detalles}) & CUPS, diagnósticos CIE-10, cantidades, autorizaciones & $\sim$500,000 líneas/mes \\
-Auditoría - Glosas & MySQL (\texttt{cm\_auditoria\_motivos\_glosas}) & Motivos de glosa por detalle & Vinculados a detalles \\
-Auditoría - Devoluciones & MySQL (\texttt{cm\_auditoria\_devoluciones}) & Devoluciones por factura & Vinculados a facturas \\
+Cabecera de Factura & \texttt{cm\_facturas} & Valores, prestador, contrato, régimen, FEV & $\sim$40,000 facturas/mes \\
+Detalle de Servicios & \texttt{cm\_detalles} & CUPS, diagnósticos CIE-10, cantidades, autorizaciones & $\sim$500,000 líneas/mes \\
+Auditoría - Glosas & \texttt{cm\_auditoria\_\idb motivos\_\idb glosas} & Motivos de glosa por detalle & Vinculados a detalles \\
+Auditoría - Devoluciones & \texttt{cm\_auditoria\_\idb devoluciones} & Devoluciones por factura & Vinculados a facturas \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -899,30 +917,35 @@ Esta fase consume aproximadamente el 60-70\% del tiempo del proyecto y comprende
 
 \begin{figure}[H]
 \centering
+% Disposición en dos columnas: la versión anterior apilaba las 15 cajas en una
+% sola columna, ocupaba una página entera y no dejaba ver el agrupamiento por
+% categoría (las cabeceras naranjas se leían como un ítem más de la lista).
 \begin{tikzpicture}[
-    node distance=0.8cm,
-    feature/.style={rectangle, draw=minsalud, thick, fill=blue!5, 
-                    minimum width=5cm, minimum height=0.8cm, align=center, font=\small},
-    category/.style={rectangle, draw=accent, thick, fill=orange!10, 
-                     minimum width=6cm, minimum height=0.6cm, align=center, font=\footnotesize\bfseries}
+    node distance=0.22cm,
+    feature/.style={rectangle, draw=minsalud, thick, fill=blue!5,
+                    text width=6.1cm, minimum height=0.65cm, align=center, font=\footnotesize},
+    category/.style={rectangle, draw=accent, very thick, fill=orange!15,
+                     text width=6.1cm, minimum height=0.6cm, align=center, font=\footnotesize\bfseries}
 ]
 
+% --- Columna izquierda ---
 \node[category] (cat1) {Variables Demográficas};
 \node[feature, below=of cat1] (f1) {Edad, sexo, régimen (contributivo/subsidiado)};
 \node[feature, below=of f1] (f2) {Zona geográfica (departamento, municipio)};
 
-\node[category, below=0.5cm of f2] (cat2) {Variables Clínicas};
-\node[feature, below=of cat2] (f3) {Cantidad consultas por especialidad};
+\node[category, below=0.65cm of f2] (cat2) {Variables Clínicas};
+\node[feature, below=of cat2] (f3) {Cantidad de consultas por especialidad};
 \node[feature, below=of f3] (f4) {Diversidad diagnóstica (índice de Shannon)};
-\node[feature, below=of f4] (f5) {Complejidad procedimientos (nivel CUPS)};
-\node[feature, below=of f5] (f6) {Consumo medicamentos (CUM, cantidades)};
+\node[feature, below=of f4] (f5) {Complejidad de procedimientos (nivel CUPS)};
+\node[feature, below=of f5] (f6) {Consumo de medicamentos (CUM, cantidades)};
 
-\node[category, below=0.5cm of f6] (cat3) {Variables Financieras};
-\node[feature, below=of cat3] (f7) {Valor total factura, valor por servicio};
-\node[feature, below=of f7] (f8) {Modalidad pago (evento, capitación, paquete)};
-\node[feature, below=of f8] (f9) {Antigüedad deudor, histórico glosas prestador};
+% --- Columna derecha ---
+\node[category, right=0.7cm of cat1] (cat3) {Variables Financieras};
+\node[feature, below=of cat3] (f7) {Valor total de factura, valor por servicio};
+\node[feature, below=of f7] (f8) {Modalidad de pago (evento, capitación, paquete)};
+\node[feature, below=of f8] (f9) {Antigüedad del deudor, histórico de glosas del prestador};
 
-\node[category, below=0.5cm of f9] (cat4) {Variables Temporales};
+\node[category, below=0.65cm of f9] (cat4) {Variables Temporales};
 \node[feature, below=of cat4] (f10) {Día de la semana, mes, temporada};
 \node[feature, below=of f10] (f11) {Tiempo entre atención y radicación};
 
@@ -1050,25 +1073,27 @@ La transición de notebooks a código modular introduce riesgos que no son captu
 
 \begin{table}[H]
 \centering
-\caption{Inventario de la suite de pruebas automatizadas del sistema de predicción.}
+\caption{Inventario de la suite de pruebas automatizadas del sistema de predicción
+(ejecución del 11 de septiembre de 2026). Cada archivo se clasifica por su tipo de
+prueba predominante.}
 \label{tab:testing_suite}
 \small
-\begin{tabular}{@{}llcc@{}}
+\begin{tabular}{@{}lp{6.3cm}cc@{}}
 \toprule
-\textbf{Archivo} & \textbf{Tipo de Prueba} & \textbf{Tests} & \textbf{Requiere Modelo} \\
+\textbf{Capa} & \textbf{Archivos principales} & \textbf{Archivos} & \textbf{Tests} \\
 \midrule
-\texttt{test\_config.py} & Unitaria & 10 & No \\
-\texttt{test\_features.py} & Unitaria, Property & 22 & No \\
-\texttt{test\_predict.py} & Unitaria, Integración, Property & 15 & Parcial \\
-\texttt{test\_explainability.py} & Unitaria, Integración & 20 & Parcial \\
-\texttt{test\_schemas.py} & Unitaria, Property & 23 & No \\
-\texttt{test\_api.py} & Integración & 22 & Sí \\
-\texttt{test\_performance.py} & Rendimiento & 7 & Sí \\
-\texttt{test\_security.py} & Seguridad & 12 & Sí \\
-\texttt{test\_model\_regression.py} & Regresión del Modelo & 10 & Sí \\
-\texttt{test\_docker.py} & Contenedor Docker & 6 & Sí + Docker \\
+Unitaria & \texttt{config}, \texttt{features}, \texttt{schemas},
+\texttt{predict}, \texttt{explainability}, \texttt{privacy\_guard},
+\texttt{build\_dataset}, \texttt{drift\_detector}, \texttt{embedding\_*},
+\texttt{nlp\_pipeline}, \texttt{llm\_evaluator}, \texttt{model\_registry} & 16 & 276 \\
+Integración & \texttt{test\_api}, \texttt{test\_api\_llm\_integration} & 2 & 37 \\
+Basadas en propiedades & \texttt{*\_properties} (Hypothesis) & 5 & 48 \\
+Seguridad & \texttt{test\_security} & 1 & 12 \\
+Regresión del modelo & \texttt{test\_model\_regression} & 1 & 10 \\
+Rendimiento & \texttt{test\_performance} & 1 & 7 \\
+Contenedor Docker & \texttt{test\_docker} (omitidas sin demonio Docker) & 1 & 6 \\
 \midrule
-\textbf{Total} & & \textbf{147} & \\
+\textbf{Total} & & \textbf{27} & \textbf{396} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1086,7 +1111,30 @@ Las seis capas abordan dimensiones distintas de calidad:
 
 \subsubsection{Métricas de la Suite}
 
-La suite alcanzó una \textbf{cobertura de código del 96.85\%} sobre los módulos de producción (meta: $\geq$80\%), con un tiempo de ejecución total de \textbf{21.76 segundos} (meta: $<$5 minutos). La distribución por módulo fue: \texttt{schemas.py} y \texttt{config.py} al 100\%, \texttt{predict.py} al 100\%, \texttt{engineering.py} al 98\%, \texttt{shap\_explanations.py} al 97\% y \texttt{main.py} (API) al 90\%.
+En la última ejecución completa (11 de septiembre de 2026) la suite reportó
+\textbf{396 pruebas recolectadas: 390 exitosas y 6 omitidas} —las de contenedor Docker,
+que requieren un demonio Docker activo— en un tiempo total de aproximadamente
+\textbf{15 minutos}, dentro del cual el grueso corresponde a las pruebas basadas en
+propiedades y a la carga del modelo de lenguaje para embeddings.
+
+La \textbf{cobertura global es del 65.6\%} sobre 2.168 sentencias. Esta cifra debe
+leerse con cuidado, porque agrega dos poblaciones de código con propósitos distintos.
+Restringida a los módulos que componen la ruta de producción —API, esquemas,
+características, predicción, explicabilidad, privacidad, monitoreo y almacenamiento— la
+cobertura asciende al \textbf{87.8\%}, por encima de la meta del 80\%: \texttt{schemas.py},
+\texttt{config.py}, \texttt{guard.py}, \texttt{model\_monitor.py},
+\texttt{model\_registry.py} y \texttt{embedding\_pipeline.py} al 100\%,
+\texttt{build\_dataset.py} al 99\%, \texttt{engineering.py} al 98\%,
+\texttt{shap\_explanations.py} al 97\%, \texttt{drift\_detector.py} al 91\%,
+\texttt{predict.py} al 90\% y \texttt{main.py} (API) al 60\%.
+
+El déficit se concentra en los \textbf{scripts de experimentación fuera de línea}
+(\texttt{model\_suite.py}, \texttt{run\_autogluon.py}, \texttt{enriched.py} y el
+planificador de reentrenamiento), que suman 553 de las 746 sentencias no cubiertas.
+Son programas de ejecución manual y larga duración —búsqueda de hiperparámetros sobre
+cientos de miles de facturas— cuya validación se realizó por reproducción de resultados
+y no mediante pruebas unitarias. Se reporta como una limitación explícita y no como un
+objetivo alcanzado.
 
 \subsubsection{Integración Continua (CI/CD)}
 
@@ -1120,7 +1168,7 @@ Visualización & Matplotlib, Seaborn & Generación de gráficas y reportes \\
 Versionamiento & Git & Control de código fuente \\
 Entorno & Jupyter Notebooks & Desarrollo interactivo y documentación \\
 API/Despliegue & FastAPI, Pydantic, Uvicorn & API REST de predicción con esquemas validados \\
-Testing & pytest, Hypothesis, psutil & Validación automatizada en 6 capas (147 pruebas) \\
+Testing & pytest, Hypothesis, psutil & Validación automatizada en 6 capas (396 pruebas) \\
 CI/CD & GitHub Actions & Integración continua con 3 trabajos automatizados \\
 \bottomrule
 \end{tabular}
@@ -1161,16 +1209,18 @@ La arquitectura de producción se diseñó bajo un paradigma \textit{serverless}
 \node[aws, right=of rips] (apigw) {API\\Gateway};
 
 % --- Capa 2: Inferencia ---
+% Los dos almacenes de datos se ubican ARRIBA de Lambda para dejar libre
+% la banda inferior, que ocupa el flujo batch y las flechas de monitoreo.
 \node[aws, right=of apigw] (lambda) {Lambda\\(predict)};
-\node[data, above=0.8cm of lambda] (s3model) {S3\\(modelo)};
-\node[data, below=0.8cm of lambda] (dynamo) {DynamoDB\\(NIT store)};
+\node[data, above=1cm of lambda, xshift=-1.3cm] (s3model) {S3\\(modelo)};
+\node[data, above=1cm of lambda, xshift=1.3cm] (dynamo) {DynamoDB\\(NIT store)};
 
 % --- Capa 3: Salida ---
 \node[aws, right=1.5cm of lambda] (response) {Respuesta\\JSON};
 \node[user, right=of response] (auditor) {Auditores};
 
 % --- Batch path ---
-\node[aws, below=2cm of apigw] (eventbridge) {EventBridge\\(6AM diario)};
+\node[aws, below=2.2cm of apigw] (eventbridge) {EventBridge\\(6AM diario)};
 \node[aws, right=of eventbridge] (stepfn) {Step\\Functions};
 \node[aws, right=of stepfn] (sagemaker) {SageMaker\\Batch};
 \node[data, right=of sagemaker] (s3results) {S3\\(resultados)};
@@ -1194,13 +1244,14 @@ La arquitectura de producción se diseñó bajo un paradigma \textit{serverless}
 \draw[arrow] (sagemaker) -- (s3results);
 \draw[arrow] (s3results) -- (sns);
 
-% Monitoreo
-\draw[darrow] (lambda) |- (cloudwatch);
+% Monitoreo: se enruta por el costado izquierdo para no cruzar la fila batch
+\draw[darrow] (lambda.south) -- ++(0,-0.7) -| ([xshift=-1cm]eventbridge.west)
+    |- (cloudwatch.west);
 \draw[darrow] (sagemaker) |- (cloudwatch);
 
 % Labels de capas
-\node[above=0.3cm of apigw, font=\footnotesize\bfseries, text=minsalud] {Tiempo Real};
-\node[above=0.3cm of stepfn, font=\footnotesize\bfseries, text=accent] {Batch Diario};
+\node[above=0.25cm of apigw, font=\footnotesize\bfseries, text=minsalud] {Tiempo Real};
+\node[above=0.25cm of eventbridge, font=\footnotesize\bfseries, text=accent] {Batch Diario};
 
 \end{tikzpicture}
 }
@@ -1306,7 +1357,7 @@ El análisis de validación Out-of-Time (§\ref{subsec:oot_results}) reveló una
     \item \textbf{Dataset histórico:} 16 meses de operaciones de Savia Salud EPS (marzo 2024 a julio 2025), resultando en 633,181 facturas tras el tratamiento de sesgos de censura
     \item \textbf{Partición temporal:} 515,145 registros para entrenamiento (mar 2024 -- abr 2025), 77,843 para validación (may 2025) y 40,193 para prueba (jun--jul 2025)
     \item \textbf{Validación Out-of-Time (OOT):} 223,621 facturas de agosto a diciembre de 2025, utilizadas para evaluar la estabilidad temporal del modelo
-    \item \textbf{Variable objetivo:} Construida a partir de JOINs a las tablas \texttt{cm\_auditoria\_devoluciones} (clase Devuelta), \texttt{cm\_auditoria\_motivos\_glosas} vía \texttt{cm\_detalles} (clase Glosada) y ausencia de ambas (clase Auditada), con prioridad Devuelta $>$ Glosada $>$ Auditada
+    \item \textbf{Variable objetivo:} Construida a partir de JOINs a las tablas \texttt{cm\_auditoria\_\idb devoluciones} (clase Devuelta), \texttt{cm\_auditoria\_\idb motivos\_\idb glosas} vía \texttt{cm\_detalles} (clase Glosada) y ausencia de ambas (clase Auditada), con prioridad Devuelta $>$ Glosada $>$ Auditada
     \item \textbf{Distribución de clases (test):} Auditada 34.1\%, Glosada 40.2\%, Devuelta 25.7\%
     \item \textbf{Ingeniería de características:} 48 features extraídas de cabecera de factura (16), detalle de servicios (21) y perfil histórico del prestador (11)
 \end{itemize}
@@ -1409,42 +1460,60 @@ Auxiliar de Radicación & Recepción y clasificación inicial & ``Muchas factura
 \centering
 \resizebox{\textwidth}{!}{
 \begin{tikzpicture}[
-    node distance=1.5cm,
-    process/.style={rectangle, rounded corners, draw=minsalud, thick, fill=blue!10, 
-                    minimum width=3cm, minimum height=1cm, align=center, font=\small},
-    decision/.style={diamond, draw=accent, thick, fill=orange!10, 
+    node distance=1.3cm,
+    process/.style={rectangle, rounded corners, draw=minsalud, thick, fill=blue!10,
+                    minimum width=2.6cm, minimum height=1cm, align=center, font=\small},
+    decision/.style={diamond, draw=accent, thick, fill=orange!10,
                      minimum width=1.5cm, minimum height=1cm, align=center, font=\footnotesize, aspect=2},
     arrow/.style={-stealth, thick},
+    % fill=white impide que las etiquetas de arista queden encima de flechas o cajas
+    elabel/.style={font=\footnotesize, fill=white, inner sep=1.5pt},
     delay/.style={rectangle, draw=red, thick, fill=red!10, dashed,
                   minimum width=2cm, minimum height=0.8cm, align=center, font=\footnotesize}
 ]
-% Nodos del proceso
-\node[process] (rad) {Radicación con CUV};
-\node[process, right=of rad] (cola) {Cola de Espera};
-\node[decision, right=of cola] (prio) {¿Prioridad?};
-\node[process, above right=0.5cm and 1.5cm of prio] (urg) {Auditoría Urgente};
-\node[process, below right=0.5cm and 1.5cm of prio] (est) {Auditoría Estándar};
-\node[decision, right=2.5cm of prio] (rev) {Revisión Manual};
-\node[decision, right=of rev] (estado) {¿Estado?};
-\node[process, above right=0.5cm and 1cm of estado] (ok) {Auditada OK};
-\node[process, right=of estado] (glosa) {Glosada};
-\node[process, below right=0.5cm and 1cm of estado] (dev) {Devuelta};
-% Flechas
+% Disposición en dos filas. En una sola fila el diagrama medía ~26 cm de ancho
+% y, al escalarlo al ancho de texto, los rótulos quedaban por debajo de 5 pt.
+% Fila 1: recepción y priorización — Fila 2: revisión y desenlace.
+% --- Fila 1 ---
+\node[process]  (rad)    at (0,0)      {Radicación con CUV};
+\node[process]  (cola)   at (4.2,0)    {Cola de Espera};
+\node[decision] (prio)   at (8.3,0)    {¿Prioridad?};
+\node[process]  (urg)    at (12.5,1.4) {Auditoría Urgente};
+\node[process]  (est)    at (12.5,-1.4){Auditoría Estándar};
+\node[delay]    (demora) at (4.2,-2.1) {Demora: 3-5 días};
+% --- Fila 2 ---
+\node[decision] (rev)    at (0,-5.4)   {Revisión Manual};
+\node[decision] (estado) at (5.0,-5.4) {¿Estado?};
+% Separación amplia en el abanico de salida: las etiquetas de arista
+% ('Rechazo parcial', etc.) son más anchas que el tramo de flecha original.
+\node[process]  (ok)     at (10.2,-4.0){Auditada OK};
+\node[process]  (glosa)  at (10.2,-5.4){Glosada};
+\node[process]  (dev)    at (10.2,-6.8){Devuelta};
+
+% Flechas — fila 1
 \draw[arrow] (rad) -- (cola);
 \draw[arrow] (cola) -- (prio);
-\draw[arrow] (prio) -- node[above, font=\footnotesize] {Alta} (urg);
-\draw[arrow] (prio) -- node[below, font=\footnotesize] {Normal} (est);
-\draw[arrow] (urg) -| (rev);
-\draw[arrow] (est) -| (rev);
-\draw[arrow] (rev) -- (estado);
-\draw[arrow] (estado) -- node[above, font=\footnotesize] {Aprobada} (ok);
-\draw[arrow] (estado) -- node[above, font=\footnotesize] {Rechazo parcial} (glosa);
-\draw[arrow] (estado) -- node[below, font=\footnotesize] {Rechazo total} (dev);
-% Retroalimentación
-\draw[arrow, dashed, color=red] (dev.south) -- ++(0,-0.5) -| node[below, font=\footnotesize, pos=0.25] {Reproceso} (rad);
-% Indicador de problema
-\node[delay, below=0.3cm of cola] (demora) {Demora: 3-5 días};
+\draw[arrow] (prio) -- node[elabel] {Alta} (urg);
+\draw[arrow] (prio) -- node[elabel] {Normal} (est);
 \draw[arrow, dashed, color=red] (cola) -- (demora);
+
+% Retorno a la fila 2: ambas colas de auditoría convergen en un corredor
+% horizontal libre (y = -3.2) y bajan a 'Revisión Manual'.
+\coordinate (ret) at (14.6,-3.05);
+\draw[thick] (urg.east) -- ++(0.7,0) |- (ret);
+\draw[thick] (est.east) -- ++(0.7,0) |- (ret);
+\draw[arrow] (ret) -| (rev.north);
+
+% Flechas — fila 2
+\draw[arrow] (rev) -- (estado);
+\draw[arrow] (estado) -- node[elabel, pos=0.55] {Aprobada} (ok);
+\draw[arrow] (estado) -- node[elabel, pos=0.5] {Rechazo parcial} (glosa);
+\draw[arrow] (estado) -- node[elabel, pos=0.55] {Rechazo total} (dev);
+
+% Retroalimentación: el reproceso vuelve a radicación por el costado izquierdo
+\draw[arrow, dashed, color=red] (dev.south) -- ++(0,-0.8)
+    -| ([xshift=-1.7cm]rev.west) |- (rad.west);
+\node[font=\footnotesize, color=red, fill=white, inner sep=2pt] at (5.6,-7.6) {Reproceso};
 
 \end{tikzpicture}
 }
@@ -1463,10 +1532,11 @@ Para comprender el comportamiento del sistema de auditoría en el tiempo y cuant
 \resizebox{0.9\textwidth}{!}{
 \begin{tikzpicture}[
     node distance=2.5cm,
-    vnode/.style={ellipse, draw=minsalud, thick, fill=blue!10, 
+    vnode/.style={ellipse, draw=minsalud, thick, fill=blue!10,
                   minimum width=2.5cm, minimum height=1cm, align=center, font=\small},
     arrow/.style={-stealth, thick},
-    polarity/.style={font=\footnotesize\bfseries, color=red}
+    % fill=white evita que los signos de polaridad queden ilegibles sobre las flechas
+    polarity/.style={font=\footnotesize\bfseries, color=red, fill=white, inner sep=1.5pt}
 ]
 
 % Variables
@@ -1483,12 +1553,18 @@ Para comprender el comportamiento del sistema de auditoría en el tiempo y cuant
 \draw[arrow] (auditores) -- node[right, polarity] {+} (proceso);
 \draw[arrow] (tiempo) -- node[left, polarity] {-} (proceso);
 \draw[arrow] (inventario) -- node[left, polarity] {+} (tiempo);
-\draw[arrow] (presion) -- node[right, polarity] {-} (tiempo);
+% 'Presión' influye sobre 'Tiempo' rodeando el inventario por la derecha:
+% el trazado recto anterior atravesaba la elipse 'Inventario de Facturas Pendientes'.
+\coordinate (pdesvio) at ($(presion.east)+(0.9,0)$);
+\draw[arrow] (presion.east) -- (pdesvio) |- (tiempo.east);
+\node[polarity] at ($(pdesvio)+(0,-0.85)$) {-};
 \draw[arrow] (tiempo) -- node[right, polarity] {-} (calidad);
 \draw[arrow] (calidad) -- node[above, polarity] {+} (proceso);
 \draw[arrow] (presion) -- node[above, polarity] {+} (inventario);
 % Bucle de realimentación
-\draw[arrow, dashed, color=accent, thick] (proceso.south) -- ++(0,-0.5) -| node[below, font=\footnotesize, pos=0.25] {Bucle de balance} (inventario.south);
+\draw[arrow, dashed, color=accent, thick] (proceso.south) -- ++(0,-0.8) -| (inventario.south);
+\node[font=\footnotesize, color=accent, fill=white, inner sep=2pt]
+    at ($(proceso.south)!0.5!(inventario.south)+(0,-0.8)$) {Bucle de balance};
 
 \end{tikzpicture}
 }
@@ -1530,10 +1606,11 @@ Para comprender el comportamiento del sistema de auditoría en el tiempo y cuant
 \draw[arrow, dashed] (capacidad) -- (salida);
 \draw[arrow, dashed] (eficiencia) -- (capacidad);
 \draw[arrow, dashed] (stock) -- (capacidad);
-% Ecuación
-\node[below=2.5cm of stock, text width=8cm, align=center, font=\small] {
-    $\frac{d(\text{Facturas Pendientes})}{dt} = TR(t) - TA(t)$ \\[0.3cm]
-    Donde: $TA(t) = \min\left(\text{Capacidad}, \frac{\text{Facturas Pendientes}}{\text{Tiempo Promedio}}\right)$
+% Ecuación: anclada DEBAJO de 'eficiencia' (antes se solapaba con ese nodo
+% porque se posicionaba respecto a 'stock' sin contar la altura de la cadena).
+\node[below=0.9cm of eficiencia, text width=9cm, align=center, font=\small] {
+    $\dfrac{d(\text{Facturas Pendientes})}{dt} = TR(t) - TA(t)$ \\[0.35cm]
+    Donde: $TA(t) = \min\left(\text{Capacidad},\ \dfrac{\text{Facturas Pendientes}}{\text{Tiempo Promedio}}\right)$
 };
 
 \end{tikzpicture}
@@ -1637,9 +1714,12 @@ La Figura \ref{fig:simulacion} demuestra que:
 \begin{table}[H]
 \centering
 \caption{Análisis comparativo de escenarios mediante Dinámica de Sistemas (proyección teórica)}
+\label{tab:escenarios_sd}
+\small
 \begin{tabular}{@{}lccc@{}}
 \toprule
-\textbf{Indicador} & \textbf{Actual} & \textbf{Con Modelo Predictivo} & \textbf{Mejora Esperada} \\
+\textbf{Indicador} & \textbf{Actual} & \textbf{Con Modelo} & \textbf{Mejora} \\
+                   &                 & \textbf{Predictivo} & \textbf{Esperada} \\
 \midrule
 Tiempo promedio de auditoría & 4.2 días & 1.8 días & 57\% \\
 Facturas pendientes (día 30) & 6,800 & 2,400 & 65\% \\
@@ -1671,29 +1751,38 @@ Tiempo de ciclo de pago (promedio) & 23 días & 15 días & 35\% \\
     improvement/.style={rectangle, draw=green!50!black, thick, fill=green!5, dashed,
                         minimum width=2cm, minimum height=0.6cm, align=center, font=\footnotesize}
 ]
-% Flujo principal
-\node[process] (rad) {Radicación con CUV};
-\node[model, right=of rad] (pred) {Modelo ML Predictivo\\(Clasificación de Riesgo)};
-\node[decision, right=of pred] (riesgo) {Nivel de Riesgo?};
+% Disposición en dos filas, por la misma razón que la Figura del proceso As-Is:
+% en una sola fila el diagrama superaba los 24 cm y los rótulos resultaban
+% ilegibles tras escalarlo al ancho de texto.
+% --- Fila 1: triaje ---
+\node[process]  (rad)    at (0,0)      {Radicación con CUV};
+\node[model]    (pred)   at (4.8,0)    {Modelo ML Predictivo\\(Clasificación de Riesgo)};
+\node[decision] (riesgo) at (9.4,0)    {Nivel de Riesgo?};
 % Ramas según riesgo
-\node[process, above right=0.3cm and 1.5cm of riesgo] (bajo) {Auditoría Automatizada\\(Bajo Riesgo)};
-\node[process, right=of riesgo] (medio) {Auditoría Muestral\\(Riesgo Medio)};
-\node[process, below right=0.3cm and 1.5cm of riesgo] (alto) {Auditoría Profunda\\(Alto Riesgo)};
-% Salida
-\node[process, right=4cm of riesgo] (result) {Resultado Final};
-\node[process, right=of result] (pago) {Pago/Glosa};
+\node[process]  (bajo)   at (14.2,1.6) {Auditoría Automatizada\\(Bajo Riesgo)};
+\node[process]  (medio)  at (14.2,0)   {Auditoría Muestral\\(Riesgo Medio)};
+\node[process]  (alto)   at (14.2,-1.6){Auditoría Profunda\\(Alto Riesgo)};
+% --- Fila 2: consolidación y pago ---
+\node[process]  (result) at (3.2,-4.8) {Resultado Final};
+\node[process]  (pago)   at (7.6,-4.8) {Pago/Glosa};
 % Flechas
 \draw[arrow] (rad) -- (pred);
 \draw[arrow] (pred) -- (riesgo);
-\draw[arrow] (riesgo) -- node[above, font=\footnotesize] {Bajo} (bajo);
-\draw[arrow] (riesgo) -- node[above, font=\footnotesize] {Medio} (medio);
-\draw[arrow] (riesgo) -- node[below, font=\footnotesize] {Alto} (alto);
-\draw[arrow] (bajo) -| (result);
-\draw[arrow] (medio) -- (result);
-\draw[arrow] (alto) -| (result);
+\draw[arrow] (riesgo) -- node[above, font=\footnotesize, fill=white, inner sep=1.5pt] {Bajo} (bajo);
+\draw[arrow] (riesgo) -- node[above, font=\footnotesize, fill=white, inner sep=1.5pt] {Medio} (medio);
+\draw[arrow] (riesgo) -- node[below, font=\footnotesize, fill=white, inner sep=1.5pt] {Alto} (alto);
+% Las tres ramas convergen en un corredor libre (y = -3.2) y bajan a 'Resultado Final'
+\coordinate (conv) at (17.2,-3.45);
+\draw[thick] (bajo.east)  -- ++(0.7,0) |- (conv);
+\draw[thick] (medio.east) -- ++(0.7,0) |- (conv);
+\draw[thick] (alto.east)  -- ++(0.7,0) |- (conv);
+\draw[arrow] (conv) -| (result.north);
 \draw[arrow] (result) -- (pago);
-% Retroalimentación para aprendizaje
-\draw[arrow, dashed, color=minsalud] (result.south) -- ++(0,-0.8) -| node[below, font=\footnotesize, pos=0.25] {Retroalimentación} (pred.south);
+% Retroalimentación para aprendizaje continuo
+\draw[arrow, dashed, color=minsalud]
+    (result.south) -- ++(0,-1.0) -| (5.4,-2.4) -- (4.8,-2.4) -- (pred.south);
+\node[font=\footnotesize, color=minsalud, fill=white, inner sep=2pt]
+    at (4.3,-6.3) {Retroalimentación};
 % Mejoras
 \node[improvement, above=0.3cm of pred] {Tiempo: < 1 minuto};
 \node[improvement, above=0.3cm of bajo] {80\% de casos};
@@ -1710,6 +1799,7 @@ Tiempo de ciclo de pago (promedio) & 23 días & 15 días & 35\% \\
 \begin{table}[H]
 \centering
 \caption{Redistribución de carga de trabajo con modelo predictivo}
+\small
 \begin{tabular}{@{}lccc@{}}
 \toprule
 \textbf{Tipo de Auditoría} & \textbf{\% Casos} & \textbf{Recurso} & \textbf{Tiempo Promedio} \\
@@ -1754,9 +1844,11 @@ Se entrenaron tres modelos de ensamble (XGBoost, LightGBM, y RandomForest) para 
 \centering
 \caption{Comparación de métricas de desempeño por algoritmo en el conjunto de prueba (Fase 4, datos mar-2024/jul-2025).}
 \label{tab:resultados_modelos}
+\small
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Algoritmo} & \textbf{F1-Score Macro} & \textbf{AUC-ROC (OvR)} & \textbf{Recall Glosada} & \textbf{Recall Devuelta} \\
+\textbf{Algoritmo} & \textbf{F1-Score} & \textbf{AUC-ROC} & \textbf{Recall} & \textbf{Recall} \\
+                   & \textbf{Macro}    & \textbf{(OvR)}   & \textbf{Glosada} & \textbf{Devuelta} \\
 \midrule
 XGBoost v1 & 0.7490 & 0.9078 & 0.7261 & 0.7628 \\
 LightGBM & 0.7441 & 0.9063 & 0.7124 & 0.7433 \\
@@ -1777,9 +1869,12 @@ Ante el hallazgo de deriva del concepto (Sección \ref{subsec:oot_results}), se 
 \centering
 \caption{Suite comparativa de modelos sobre datos frescos (mar-2024/may-2026). Campeón en negrita.}
 \label{tab:suite_v3}
+\small
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Modelo} & \textbf{F1 Macro (prueba)} & \textbf{Recall Glosada (prueba)} & \textbf{F1 Macro (OOT)} & \textbf{Recall Glosada (OOT)} \\
+ & \multicolumn{2}{c}{\textbf{Prueba (feb--mar 2026)}} & \multicolumn{2}{c}{\textbf{Out-of-Time (abr--may 2026)}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+\textbf{Modelo} & \textbf{F1 Macro} & \textbf{Recall Glosada} & \textbf{F1 Macro} & \textbf{Recall Glosada} \\
 \midrule
 XGBoost v2 reproducido & 0.7298 & 0.9164 & 0.6959 & 0.8884 \\
 XGBoost afinado & 0.7595 & 0.8465 & 0.7245 & 0.8385 \\
@@ -1928,12 +2023,21 @@ La Figura \ref{fig:val_oot} muestra la matriz de confusión del modelo en el per
 % SECCIÓN 8.4: IMPORTANCIA DE VARIABLES (XAI)
 %---------------------------------------------------
 \section{Explicabilidad del Modelo (XAI): Importancia de Variables}
-Para comprender los factores que impulsan las predicciones del modelo, se utilizó el algoritmo SHAP (SHapley Additive exPlanations). El análisis de importancia global de características (Figura \ref{fig:feature_importance}) identifica las variables más influyentes en la decisión del modelo.
+Para comprender los factores que impulsan las predicciones del modelo, se utilizó el
+algoritmo SHAP (SHapley Additive exPlanations). El análisis se presenta en dos partes:
+primero el del modelo inicial XGBoost v1, sobre el que se construyó la interpretación de
+negocio original; después el del modelo campeón LightGBM v3 efectivamente desplegado
+(Sección \ref{subsec:shap_v3}), que permite verificar si la actualización con datos
+frescos alteró la lógica aprendida.
+
+\subsection{Modelo inicial (XGBoost v1)}
+El análisis de importancia global de características (Figura \ref{fig:feature_importance})
+identifica las variables más influyentes en la decisión del modelo.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{Codigo/reports/figures/shap_01_importancia_global.png}
-\caption{Importancia de variables según el valor SHAP promedio. Muestra las 20 características con mayor impacto agregado en las predicciones del modelo XGBoost.}
+\caption{Importancia de variables según el valor SHAP promedio. Muestra las 20 características con mayor impacto agregado en las predicciones del modelo XGBoost v1.}
 \label{fig:feature_importance}
 \end{figure}
 
@@ -1941,40 +2045,109 @@ Las cinco características más determinantes para el modelo fueron:
 
 \begin{table}[H]
 \centering
-\caption{Top 5 de variables predictoras más importantes según análisis SHAP.}
+\caption{Top 5 de variables predictoras más importantes según análisis SHAP (XGBoost v1).}
 \label{tab:top_features}
-\begin{tabular}{@{}clcl@{}}
+\small
+\begin{tabular}{@{}cp{5.2cm}cp{5.1cm}@{}}
 \toprule
-\textbf{Rank} & \textbf{Variable} & \textbf{Importancia (SHAP)} & \textbf{Interpretación} \\
+\textbf{Rank} & \textbf{Variable} & \textbf{Imp. (SHAP)} & \textbf{Interpretación} \\
 \midrule
-1 & \texttt{log\_num\_items\_con\_autorizacion} & 1.2284 & Complejidad/requerimiento de autorización \\
+1 & \texttt{log\_num\_items\_\idb con\_autorizacion} & 1.2284 & Complejidad/requerimiento de autorización \\
 2 & \texttt{log\_num\_dx\_distintos} & 0.4209 & Complejidad clínica de la factura \\
 3 & \texttt{tiene\_fev} & 0.3828 & Si la factura es electrónica (vs. manual) \\
-4 & \texttt{log\_valor\_x\_tasa\_glosa} & 0.2939 & Riesgo compuesto (valor x historial prestador) \\
-5 & \texttt{num\_items\_con\_autorizacion} & 0.2339 & Cantidad de ítems que necesitaron autorización \\
+4 & \texttt{log\_valor\_x\_tasa\_glosa} & 0.2939 & Riesgo compuesto (valor $\times$ historial prestador) \\
+5 & \texttt{num\_items\_con\_\idb autorizacion} & 0.2339 & Cantidad de ítems que necesitaron autorización \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Estos resultados confirman que el modelo aprendió patrones de negocio lógicos, priorizando variables relacionadas con la complejidad clínica, administrativa y el comportamiento histórico del prestador para determinar el riesgo de una factura.
 
-\subsection{Análisis SHAP por Clase}
+\subsection{Modelo campeón desplegado (LightGBM v3)}
+\label{subsec:shap_v3}
 
-El gráfico beeswarm por clase (Figura \ref{fig:shap_beeswarm}) descompone la contribución de cada variable para cada una de las tres clases, revelando patrones diferenciados. Por ejemplo, un valor alto de \texttt{log\_num\_dx\_distintos} empuja la predicción hacia Auditada (complejidad clínica legítima), mientras que \texttt{log\_valor\_x\_tasa\_glosa} alto empuja hacia Glosada (riesgo compuesto). La clase Devuelta se caracteriza por la ausencia de features clave (\texttt{tiene\_fev} = 0, diagnósticos vacíos).
+El análisis SHAP se recalculó sobre el modelo campeón LightGBM v3 con el mismo método
+(\texttt{TreeExplainer} exacto) y una muestra estratificada de 1.998 facturas del
+conjunto de prueba fresco. La Figura \ref{fig:feature_importance_v3} y la
+Tabla \ref{tab:top_features_v3} presentan el resultado.
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[t]{0.32\textwidth}
+\includegraphics[width=0.85\textwidth]{Codigo/reports/figures/shap_01_importancia_global_2026.png}
+\caption{Importancia global de variables según el valor SHAP promedio para el modelo
+campeón LightGBM v3, calculada sobre el conjunto de prueba fresco (febrero--marzo 2026).}
+\label{fig:feature_importance_v3}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Top 5 de variables predictoras según análisis SHAP del modelo campeón LightGBM v3
+(promedio sobre las tres clases).}
+\label{tab:top_features_v3}
+\small
+\begin{tabular}{@{}cp{5.2cm}cp{5.1cm}@{}}
+\toprule
+\textbf{Rank} & \textbf{Variable} & \textbf{Imp. (SHAP)} & \textbf{Posición en v1} \\
+\midrule
+1 & \texttt{log\_num\_items\_\idb con\_autorizacion} & 0.3812 & 1 (sin cambio) \\
+2 & \texttt{log\_num\_dx\_distintos} & 0.3210 & 2 (sin cambio) \\
+3 & \texttt{log\_valor\_x\_tasa\_glosa} & 0.1601 & 4 (sube una posición) \\
+4 & \texttt{tasa\_devolucion\_nit} & 0.1279 & fuera del top 5 \\
+5 & \texttt{num\_items\_con\_\idb autorizacion} & 0.1090 & 5 (sin cambio) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El hallazgo relevante es la \textbf{estabilidad de la lógica aprendida}: las dos
+variables más determinantes son las mismas en ambas versiones, y cuatro de las cinco
+primeras se conservan. El único movimiento significativo es la entrada de
+\texttt{tasa\_devolucion\_nit} —el historial de devoluciones del prestador— en lugar de
+\texttt{tiene\_fev}, que cae al noveno lugar. Esto es coherente con el contexto
+normativo: a medida que la facturación electrónica se universaliza bajo la Resolución
+2275 de 2023, la variable ``tiene factura electrónica'' pierde poder discriminante
+porque deja de haber variabilidad que explotar, y el modelo se apoya en su lugar en el
+comportamiento histórico del prestador.
+
+La consecuencia metodológica es que la mejora de desempeño del v3 no provino de que el
+modelo descubriera una lógica de negocio distinta, sino de \textbf{reentrenar la misma
+lógica sobre una ventana temporal vigente}. Esto refuerza el argumento de la
+Sección \ref{subsec:oot_results}: el problema no era el algoritmo, era la antigüedad de
+los datos.
+
+Por clase, la descomposición del v3 muestra patrones diferenciados consistentes con la
+interpretación de negocio: en \textbf{Auditada} domina \texttt{log\_num\_dx\_distintos}
+(0.3043), es decir, la complejidad clínica legítima; en \textbf{Glosada} domina
+\texttt{log\_num\_items\_con\_autorizacion} (0.2758) seguida muy de cerca por la
+complejidad diagnóstica y el riesgo compuesto; y en \textbf{Devuelta} la señal es mucho
+más concentrada — \texttt{log\_num\_items\_con\_autorizacion} alcanza 0.8220, casi el
+triple que en las otras clases—, lo que refleja que las devoluciones responden a
+defectos de forma identificables de manera casi determinista.
+
+\subsection{Análisis SHAP por Clase}
+
+El gráfico beeswarm por clase (Figura \ref{fig:shap_beeswarm}), calculado sobre el
+modelo de la fase inicial, descompone la contribución de cada variable para cada una de
+las tres clases, revelando patrones diferenciados. Por ejemplo, un valor alto de \texttt{log\_num\_dx\_distintos} empuja la predicción hacia Auditada (complejidad clínica legítima), mientras que \texttt{log\_valor\_x\_tasa\_glosa} alto empuja hacia Glosada (riesgo compuesto). La clase Devuelta se caracteriza por la ausencia de features clave (\texttt{tiene\_fev} = 0, diagnósticos vacíos).
+
+% Disposición 1+2: a un tercio del ancho de texto los rótulos de las features
+% quedaban por debajo de 3 pt e ilegibles. Se prioriza la clase Glosada, que es
+% la métrica primaria del proyecto.
+\begin{figure}[htbp]
+\centering
+\begin{minipage}[t]{0.56\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_02_beeswarm_glosada_v2.png}
+  \subcaption{Clase 1 — Glosada (clase objetivo primaria)}
+\end{minipage}
+
+\vspace{0.8em}
+
+\begin{minipage}[t]{0.46\textwidth}
   \centering
   \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_02_beeswarm_auditada_v2.png}
   \subcaption{Clase 0 — Auditada}
 \end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_02_beeswarm_glosada_v2.png}
-  \subcaption{Clase 1 — Glosada}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}
+\begin{minipage}[t]{0.46\textwidth}
   \centering
   \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_02_beeswarm_devuelta_v2.png}
   \subcaption{Clase 2 — Devuelta}
@@ -2010,19 +2183,22 @@ El modelo puede generar un informe detallado de los factores que impulsaron la d
 
 La Figura \ref{fig:shap_waterfall} muestra un ejemplo real de estas explicaciones mediante gráficos waterfall para tres facturas representativas de cada clase, donde cada barra indica la contribución positiva (roja) o negativa (azul) de cada feature a la probabilidad de la clase predicha.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\begin{minipage}[t]{0.32\textwidth}
+\begin{minipage}[t]{0.56\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_03_waterfall_glosada_v2.png}
+  \subcaption{Clase 1 — Glosada\\P(Glosada)=0.98}
+\end{minipage}
+
+\vspace{0.8em}
+
+\begin{minipage}[t]{0.46\textwidth}
   \centering
   \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_03_waterfall_auditada_v2.png}
   \subcaption{Clase 0 — Auditada\\P(Auditada)=0.93}
 \end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_03_waterfall_glosada_v2.png}
-  \subcaption{Clase 1 — Glosada\\P(Glosada)=0.98}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}
+\begin{minipage}[t]{0.46\textwidth}
   \centering
   \includegraphics[width=\textwidth]{Codigo/reports/figures/shap_03_waterfall_devuelta_v2.png}
   \subcaption{Clase 2 — Devuelta\\P(Devuelta)=1.00}
@@ -2064,7 +2240,7 @@ El modelo alcanzó un \textbf{AUC-ROC de 0.9078}, superando el umbral de aceptac
 
 La discrepancia frente a la meta de Recall no invalida la viabilidad del sistema. En primer lugar, la curva Precision-Recall para la clase Glosada (Figura \ref{fig:pr_curve_glosada}) muestra que existe margen para mejorar el Recall ajustando el umbral de decisión, a expensas de aumentar los falsos positivos. En segundo lugar, como herramienta de priorización —no de decisión autónoma—, el modelo no necesita capturar el 100\% de las glosas: basta con que las facturas clasificadas como ``Glosada'' o ``Devuelta'' representen un conjunto más pequeño y más concentrado en riesgo real que la totalidad del portafolio.
 
-Complementariamente, la \textbf{suite de 147 pruebas automatizadas con 96.85\% de cobertura} valida que el sistema no solo es estadísticamente capaz sino operativamente robusto: el código supera pruebas de seguridad (resistencia a inyección SQL, XSS y path traversal), de rendimiento (latencia $<$500ms por predicción) y de regresión del modelo (métricas sobre dataset estático de 100 muestras). Esta capa de validación de software, aunque no estaba contemplada en el plan original, resultó ser un componente indispensable para demostrar la viabilidad real del sistema más allá de las métricas estadísticas del modelo.
+Complementariamente, la \textbf{suite de 396 pruebas automatizadas} —390 exitosas y 6 omitidas por requerir Docker, con 87.8\% de cobertura sobre los módulos de la ruta de producción— valida que el sistema no solo es estadísticamente capaz sino operativamente robusto: el código supera pruebas de seguridad (resistencia a inyección SQL, XSS y path traversal), de rendimiento (latencia $<$500ms por predicción) y de regresión del modelo (métricas sobre dataset estático de 100 muestras). Esta capa de validación de software, aunque no estaba contemplada en el plan original, resultó ser un componente indispensable para demostrar la viabilidad real del sistema más allá de las métricas estadísticas del modelo.
 
 %---------------------------------------------------
 \section{Discrepancia Temporal: El Concept Drift como Riesgo Operativo}
@@ -2140,7 +2316,7 @@ Los resultados de este trabajo deben interpretarse considerando las siguientes l
 
     \item \textbf{Contribución original al campo:} Este trabajo aborda una brecha de conocimiento específica al aplicar técnicas de ML a los estándares FEV-RIPS del sistema de salud colombiano, siendo el primer estudio que integra variables clínicas y financieras de estos estándares para clasificación multiclase de estados de auditoría.
 
-    \item \textbf{Viabilidad operativa validada por software:} La construcción de una suite de 380 pruebas automatizadas —incluyendo pruebas unitarias, de integración, de propiedades (Hypothesis), rendimiento, seguridad y regresión del modelo— con 83.24\% de cobertura sobre el código de producción confirma que el sistema es operable y desplegable. Esta fase, no contemplada en el diseño metodológico original, emergió como requisito al transitar de prototipos en notebooks a código estructurado, evidenciando que la viabilidad de un sistema de ML en salud se demuestra no solo mediante métricas estadísticas del modelo sino mediante la robustez verificable de su implementación de software.
+    \item \textbf{Viabilidad operativa validada por software:} La construcción de una suite de 396 pruebas automatizadas —incluyendo pruebas unitarias, de integración, de propiedades (Hypothesis), rendimiento, seguridad y regresión del modelo— con 87.8\% de cobertura sobre los módulos de la ruta de producción confirma que el sistema es operable y desplegable. Esta fase, no contemplada en el diseño metodológico original, emergió como requisito al transitar de prototipos en notebooks a código estructurado, evidenciando que la viabilidad de un sistema de ML en salud se demuestra no solo mediante métricas estadísticas del modelo sino mediante la robustez verificable de su implementación de software.
 \end{enumerate}
 
 \chapter{Recomendaciones}
@@ -2178,6 +2354,225 @@ Los resultados de este trabajo deben interpretarse considerando las siguientes l
 
     \item \textbf{Modelos federados:} Desarrollar modelos de aprendizaje federado que permitan entrenamiento colaborativo entre múltiples EPS sin compartir datos sensibles de pacientes.
 \end{enumerate}
+
+\chapter{Declaración de Uso Responsable de Inteligencia Artificial}
+\label{ch:declaracion_ia}
+
+\section{Propósito y alcance}
+
+Este capítulo declara de forma explícita en qué medida se emplearon herramientas de
+inteligencia artificial generativa durante la elaboración de este trabajo de grado, qué
+tareas ejecutó el autor y cuáles fueron asistidas, y qué controles se aplicaron para
+evitar que afirmaciones no verificadas —en particular, cifras o referencias inventadas
+por un modelo de lenguaje— llegaran al documento final. Se incluye por dos razones:
+por transparencia académica, y porque el propio objeto de estudio es un sistema de
+inteligencia artificial aplicado a decisiones con consecuencias financieras sobre
+prestadores de servicios de salud; sería incoherente exigir explicabilidad al modelo
+predictivo y no ofrecerla sobre el proceso que lo produjo.
+
+Es necesario distinguir dos usos de ``inteligencia artificial'' que aparecen en este
+documento y que no deben confundirse:
+
+\begin{itemize}
+    \item \textbf{IA como objeto de estudio:} los modelos de clasificación
+    (XGBoost, LightGBM, CatBoost, TabM, AutoGluon) y el análisis SHAP. Son el
+    resultado de la investigación y se documentan en los capítulos de Metodología y
+    Resultados.
+    \item \textbf{IA como herramienta de apoyo:} un asistente de programación y
+    redacción basado en un modelo de lenguaje, empleado como instrumento durante el
+    desarrollo. Es el objeto de esta declaración.
+\end{itemize}
+
+\section{Herramientas empleadas}
+
+La herramienta utilizada fue \textbf{Claude} (Anthropic), a través de la interfaz de
+línea de comandos \textit{Claude Code}, ejecutada localmente sobre el repositorio del
+proyecto. El registro de control de versiones permite trazar su participación de forma
+objetiva: de los 31 \textit{commits} del repositorio entre el 11 de marzo y el 11 de
+septiembre de 2026, \textbf{20 incluyen la línea de coautoría} \texttt{Co-Authored-By:
+Claude}, correspondiente a las versiones de modelo Sonnet 4.6 (13), Sonnet 5 (6) y
+Opus 4.6 (1). Los 11 restantes corresponden a trabajo sin asistencia.
+
+No se emplearon herramientas de generación de texto para producir datos, resultados
+experimentales ni referencias bibliográficas. La totalidad de las cifras reportadas en
+el Capítulo de Resultados proviene de la ejecución de código sobre la base de datos
+operativa de Savia Salud EPS.
+
+\section{Distribución de responsabilidades}
+
+La Tabla \ref{tab:responsabilidad_ia} detalla, por fase metodológica, qué correspondió
+al autor y en qué se utilizó asistencia.
+
+\begin{table}[H]
+\centering
+\caption{Distribución de tareas entre el autor y el asistente de IA por fase del proyecto.}
+\label{tab:responsabilidad_ia}
+\small
+\begin{tabular}{@{}p{3cm}p{5.7cm}p{5.6cm}@{}}
+\toprule
+\textbf{Fase} & \textbf{Autor (decisión y responsabilidad)} & \textbf{Asistencia de IA (ejecución)} \\
+\midrule
+Definición del problema & Formulación de la pregunta de investigación, objetivos y
+alcance; gestión del acceso institucional a los datos & Ninguna \\
+Marco normativo & Lectura e interpretación de la Resolución 2275 de 2023, la Circular
+007 de 2025 y la Ley 1581 de 2012 sobre los textos oficiales & Redacción de borradores
+a partir de notas del autor \\
+Comprensión de datos & Validación de la semántica de negocio de la variable objetivo
+con auditores de la EPS & Generación de consultas SQL y gráficos exploratorios \\
+Ingeniería de características & Definición y congelamiento del contrato de 48
+variables & Migración de la lógica de los \textit{notebooks} a módulos con pruebas \\
+Modelado & Elección de la métrica primaria (Recall Glosada), de los umbrales de
+aceptación y del criterio de desempate del campeón & Implementación de la suite
+comparativa, búsqueda de hiperparámetros y evaluación \\
+Explicabilidad & Interpretación de las variables en clave de causales de glosa & Cálculo
+de valores SHAP y generación de figuras \\
+Software y pruebas & Definición de los criterios de calidad & Implementación de la API
+y de la suite de pruebas automatizadas \\
+Redacción & Estructura, argumentación, conclusiones y revisión final de todo el texto &
+Borradores de secciones, tablas y figuras a partir de artefactos de resultados \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El autor asume la responsabilidad integral sobre el contenido del documento, incluidas
+las secciones cuyo primer borrador fue asistido.
+
+\section{Protocolo de control de alucinaciones}
+\label{sec:control_alucinaciones}
+
+El riesgo característico de los modelos de lenguaje es producir texto plausible pero
+falso: cifras que no corresponden a ninguna medición, referencias inexistentes o
+descripciones de código que no coinciden con el código real. Se adoptaron siete
+controles, ordenados de mayor a menor capacidad de detección automática.
+
+\begin{enumerate}
+    \item \textbf{Ninguna cifra se escribe a mano.} Todas las métricas del documento se
+    leen de artefactos generados por ejecución de código y versionados en el
+    repositorio (\texttt{reports/evaluations/*.json}). Un número que no exista en un
+    artefacto no entra al documento. Esto elimina de raíz la clase de error más común:
+    la métrica inventada o recordada de forma aproximada.
+
+    \item \textbf{Trazabilidad artefacto\,$\rightarrow$\,texto.} Cada tabla y figura de
+    resultados tiene un script generador identificable (\texttt{model\_suite.py},
+    \texttt{refresh\_shap.py}, \texttt{compute\_drift\_\idb report.py}), de modo que
+    cualquier valor del documento puede reproducirse desde los datos.
+
+    \item \textbf{Verificación por ejecución.} Ninguna propuesta de código se aceptó por
+    parecer correcta: se aceptó cuando se ejecutó y pasó las pruebas. La suite
+    automatizada (Sección \ref{subsec:fase6b}) actúa como verificador independiente del
+    texto que describe el sistema.
+
+    \item \textbf{Validación temporal fuera de muestra.} La evaluación
+    \textit{Out-of-Time} sobre un período posterior al de entrenamiento es un control
+    contra el optimismo: obliga a reportar el desempeño en condiciones de despliegue
+    real y fue precisamente el mecanismo que reveló la deriva del concepto descrita en
+    la Sección \ref{subsec:oot_results}.
+
+    \item \textbf{Auditoría de lo documentado contra lo implementado.} Al retomar el
+    proyecto en septiembre de 2026 se contrastó la documentación con el código y se
+    encontró que un modelo descrito como ``en producción'' (XGBoost v2, Recall Glosada
+    0.8961) nunca había sido conectado a la API, que seguía apuntando a la versión
+    anterior. El hallazgo ilustra que la documentación —asistida o no— puede divergir
+    del sistema real, y motivó la regla de verificar afirmaciones sobre el estado del
+    sistema contra el código y no contra notas previas.
+
+    \item \textbf{Separación explícita entre lo medido y lo proyectado.} Los valores que
+    provienen del modelo de Dinámica de Sistemas y no de una medición
+    (Tabla \ref{tab:escenarios_sd}) se declaran como proyecciones teóricas pendientes de
+    validación empírica. La misma advertencia se aplica a las estimaciones de costos de
+    infraestructura y a los tiempos históricos de disponibilidad de datos
+    (Figura \ref{fig:tiempo}).
+
+    \item \textbf{Fuentes normativas y bibliográficas.} El asistente no se utilizó como
+    fuente de autoridad normativa: las resoluciones y circulares citadas se contrastaron
+    con sus textos oficiales. La verificación de las referencias bibliográficas
+    secundarias contra su fuente original es responsabilidad del autor y constituye el
+    control con menor grado de automatización de los aquí enumerados; se recomienda
+    explícitamente su revisión en cualquier reutilización de este documento.
+\end{enumerate}
+
+\section{Verificación de resultados}
+
+Más allá del control sobre el texto, los resultados se sometieron a las siguientes
+verificaciones, todas reproducibles a partir del repositorio:
+
+\begin{itemize}
+    \item \textbf{Reproducibilidad:} semilla fija (\texttt{RANDOM\_STATE = 42}) en todos
+    los modelos, particiones temporales deterministas por \texttt{fecha\_radicacion} y
+    scripts parametrizables en lugar de celdas de \textit{notebook} con estado oculto.
+
+    \item \textbf{Prohibición de partición aleatoria:} la división de datos es
+    estrictamente temporal, lo que impide la fuga de información desde el futuro. Se
+    incluyó una prueba automatizada que verifica la ausencia de columnas con fuga
+    (\texttt{estado\_factura}, \texttt{estado\_glosa\_aut} y afines) en el vector de
+    características.
+
+    \item \textbf{Validación contra verdad de campo:} las etiquetas no provienen de
+    criterio subjetivo sino de las tablas operativas de glosas y devoluciones de la EPS.
+
+    \item \textbf{Medición —no suposición— de la deriva:} el desplazamiento de la
+    distribución entre el dataset original y el actualizado se cuantificó mediante el
+    Índice de Estabilidad Poblacional (PSI), no se infirió de forma cualitativa.
+
+    \item \textbf{Pruebas de regresión del modelo:} umbrales mínimos de F1-macro, Recall
+    de Glosada y AUC-ROC verificados automáticamente, de modo que una degradación futura
+    del modelo se detecte como una falla de prueba y no como una afirmación no revisada.
+\end{itemize}
+
+\section{Tratamiento de datos y confidencialidad}
+
+La interacción con el asistente ocurre a través de una interfaz remota, por lo que es
+necesario precisar qué información salió del entorno local. Durante el desarrollo se
+transmitieron código fuente, esquemas de tablas, mensajes de error y métricas agregadas.
+\textbf{No se transmitieron registros identificados de pacientes.} Esto se sostiene en
+tres restricciones aplicadas desde el diseño y verificables en el repositorio:
+
+\begin{enumerate}
+    \item El vector de características excluye por regla de proyecto cualquier
+    identificador directo (\texttt{nombre\_completo\_afiliado}, documentos de identidad),
+    tal como se declara en las Consideraciones Éticas y de Privacidad.
+    \item El componente \textit{PrivacyGuard} elimina información personal identificable
+    antes del procesamiento analítico.
+    \item El entrenamiento, la inferencia y el cálculo de explicaciones se ejecutan en
+    infraestructura local, condición que motivó además la exclusión del modelo
+    fundacional TabPFN v2, cuyo esquema de acceso resultaba incompatible con el
+    requisito de operación cien por ciento local derivado de la Ley 1581 de 2012.
+\end{enumerate}
+
+\section{Limitaciones y riesgos residuales}
+
+La declaración sería incompleta sin reconocer lo que estos controles no cubren:
+
+\begin{itemize}
+    \item Los controles automáticos protegen las \textbf{cifras} y el \textbf{código},
+    no la \textbf{argumentación}. Un error de interpretación en un pasaje narrativo no
+    hace fallar ninguna prueba; su detección depende de la revisión del autor y de los
+    evaluadores.
+
+    \item El asistente carece de contexto institucional: no conoce las prácticas
+    operativas ni los acuerdos contractuales de Savia Salud EPS con sus prestadores.
+    Toda afirmación sobre el proceso real de auditoría proviene de las entrevistas
+    realizadas por el autor, no de la herramienta.
+
+    \item La asistencia puede inducir un sesgo de confirmación: al producir texto
+    coherente con lo solicitado, tiende a reforzar la hipótesis de quien pregunta. El
+    contrapeso adoptado fue exigir evidencia ejecutable para toda afirmación
+    cuantitativa y reportar los resultados desfavorables —la caída del Recall de la
+    clase Auditada en el modelo v3, el desempeño parcial de AutoGluon o el fracaso del
+    enriquecimiento textual frente a la deriva— con el mismo detalle que los favorables.
+
+    \item El uso de asistencia no transfiere responsabilidad. Los errores que
+    permanezcan en este documento son atribuibles al autor.
+\end{itemize}
+
+\section{Declaración}
+
+El autor declara que el uso de herramientas de inteligencia artificial en este trabajo
+se limitó a las funciones descritas en este capítulo; que los datos, resultados
+experimentales y conclusiones son producto de la investigación realizada sobre
+información real de Savia Salud EPS; que no se emplearon dichas herramientas para
+fabricar datos, resultados ni referencias; y que asume la responsabilidad académica
+plena sobre la totalidad del contenido presentado.
 
 % --- REFERENCIAS ---
 \begin{thebibliography}{99}
@@ -2289,9 +2684,10 @@ feature_store/
 \begin{table}[H]
 \centering
 \caption{Validaciones aplicadas a datos RIPS JSON}
+\small
 \begin{tabular}{@{}llcc@{}}
 \toprule
-\textbf{Validación} & \textbf{Descripción} & \textbf{Umbral Aceptable} & \textbf{Acción si falla} \\
+\textbf{Validación} & \textbf{Descripción} & \textbf{Umbral} & \textbf{Acción si falla} \\
 \midrule
 Completitud & Campos obligatorios no nulos & $\geq$ 95\% & Exclusión del registro \\
 Validez CIE-10 & Códigos existen en catalogo vigente & 100\% & Normalización/Mapeo \\
