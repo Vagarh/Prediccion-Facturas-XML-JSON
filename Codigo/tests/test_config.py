@@ -77,9 +77,13 @@ class TestConfigConstants:
 class TestConfigPaths:
     """Tests para las rutas de configuración."""
 
-    def test_model_path_is_json(self) -> None:
-        """MODEL_PATH apunta a un archivo .json."""
-        assert MODEL_PATH.suffix == ".json"
+    def test_model_path_has_supported_extension(self) -> None:
+        """MODEL_PATH apunta a un formato soportado por src.models.predict.load_model.
+
+        ``.json`` para XGBoost nativo, ``.joblib`` para cualquier otro estimador
+        sklearn-compatible (LightGBM, CatBoost, ...) serializado con joblib.
+        """
+        assert MODEL_PATH.suffix in {".json", ".joblib"}
 
     def test_feature_list_path_is_txt(self) -> None:
         """FEATURE_LIST_PATH apunta a un archivo .txt."""

@@ -18,18 +18,19 @@ DATA_DIR = BASE_DIR / "data"
 MODELS_DIR = BASE_DIR / "models"
 REPORTS_DIR = BASE_DIR / "reports"
 
-MODEL_PATH = MODELS_DIR / "artifacts" / "20260309_xgboost_v1.json"
-FEATURE_LIST_PATH = DATA_DIR / "processed" / "20260309_feature_list.txt"
+MODEL_PATH = MODELS_DIR / "artifacts" / "20260910_lgbm_tuned_champion.joblib"
+FEATURE_LIST_PATH = DATA_DIR / "processed" / "20260910_feature_list.txt"
 
 # ---------------------------------------------------------------------------
 # Constantes del modelo
 # ---------------------------------------------------------------------------
 
 RANDOM_STATE: int = 42
-DATE_PREFIX: str = "20260309"
+DATE_PREFIX: str = "20260910"
 API_VERSION: str = "v1"
-MODEL_VERSION: str = "v1"
-MODEL_DATE: str = "2026-03-09"
+MODEL_VERSION: str = "v3"
+MODEL_DATE: str = "2026-09-10"
+MODEL_ALGORITHM: str = "LightGBM"
 
 CLASS_NAMES: dict[int, str] = {
     0: "Auditada",
@@ -43,13 +44,16 @@ CLASS_ACTIONS: dict[int, str] = {
     2: "Notificar al prestador para corrección y re-radicación",
 }
 
+# Modelo v3 (2026-09): LightGBM afinado (Optuna) sobre datos frescos mar-2024/may-2026,
+# reentrenado tras detectar que el v2 (2026-04) degradaba fuerte en producción por
+# concept drift (ver .claude/09_historial_sesiones.md, sesión 2026-09-10/11).
 MODEL_METRICS: dict[str, float] = {
-    "f1_macro": 0.7490,
-    "auc_roc_ovr": 0.9078,
-    "recall_auditada": 0.7544,
-    "recall_glosada": 0.7261,
-    "recall_devuelta": 0.7628,
-    "accuracy": 0.7452,
+    "f1_macro": 0.7577,
+    "auc_roc_ovr": 0.9060,
+    "recall_auditada": 0.5883,
+    "recall_glosada": 0.8635,
+    "recall_devuelta": 0.8568,
+    "accuracy": 0.8058,
 }
 
 # ---------------------------------------------------------------------------

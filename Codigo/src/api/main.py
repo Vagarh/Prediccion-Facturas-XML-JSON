@@ -38,6 +38,7 @@ from src.api.schemas import (
 from src.config import (
     API_VERSION,
     CLASS_NAMES,
+    MODEL_ALGORITHM,
     MODEL_DATE,
     MODEL_METRICS,
     MODEL_VERSION,
@@ -217,7 +218,7 @@ async def health_check() -> HealthResponse:
 async def model_info() -> ModelInfoResponse:
     """Retorna metadata del modelo desplegado, features y métricas."""
     return ModelInfoResponse(
-        modelo="XGBoost",
+        modelo=MODEL_ALGORITHM,
         version=MODEL_VERSION,
         fecha_entrenamiento=MODEL_DATE,
         metricas=MODEL_METRICS,

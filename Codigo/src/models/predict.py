@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
-"""Carga de modelo XGBoost y funciones de predicción.
+"""Carga de modelo y funciones de predicción.
 
-Envuelve las llamadas a XGBoost con logging y validación apropiada.
+Envuelve las llamadas al modelo con logging y validación apropiada.
 Refactorizado desde: notebooks/05_Model_Training.ipynb.
+
+El campeón v3 (LightGBM afinado, ver .claude/04_modelo_metricas.md) se serializa
+en ``.joblib`` en vez de XGBoost-JSON nativo; ``load_model`` detecta el formato
+por extensión. Ambos exponen la misma interfaz sklearn (``predict``,
+``predict_proba``), así que ``predict_single``/``predict_batch`` no cambian.
 """
 
 import logging
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -17,15 +23,20 @@ from src.config import MODEL_PATH
 logger = logging.getLogger(__name__)
 
 
-def load_model(model_path: Path | None = None) -> xgb.XGBClassifier:
-    """Carga el modelo XGBoost desde archivo JSON nativo.
+def load_model(model_path: Path | None = None) -> Any:
+    """Carga el modelo campeón desde disco.
+
+    Soporta dos formatos, detectados por extensión:
+      - ``.json``: XGBoost nativo (``xgb.XGBClassifier().load_model(...)``).
+      - ``.joblib``: cualquier estimador sklearn-compatible serializado con
+        ``joblib`` (LightGBM, CatBoost, ...).
 
     Args:
-        model_path: Ruta al archivo .json del modelo. Si es None, usa la
-            ruta por defecto definida en config.py.
+        model_path: Ruta al archivo del modelo. Si es None, usa la ruta por
+            defecto definida en config.py (``MODEL_PATH``).
 
     Returns:
-        Modelo XGBClassifier listo para predicción.
+        Estimador con interfaz ``predict``/``predict_proba`` listo para usar.
 
     Raises:
         FileNotFoundError: Si el archivo del modelo no existe.
@@ -34,19 +45,25 @@ def load_model(model_path: Path | None = None) -> xgb.XGBClassifier:
     if not path.exists():
         raise FileNotFoundError(f"Modelo no encontrado en {path}")
 
-    logger.info("Cargando modelo XGBoost desde %s", path)
-    model = xgb.XGBClassifier()
-    model.load_model(str(path))
+    if path.suffix == ".json":
+        logger.info("Cargando modelo XGBoost (JSON nativo) desde %s", path)
+        model = xgb.XGBClassifier()
+        model.load_model(str(path))
+    else:
+        import joblib
+
+        logger.info("Cargando modelo (%s) desde %s", path.suffix, path)
+        model = joblib.load(path)
+
     logger.info(
-        "Modelo cargado: %s (%.1f MB)",
-        path.name,
-        path.stat().st_size / 1_048_576,
+        "Modelo cargado: %s (%s, %.1f MB)",
+        path.name, type(model).__name__, path.stat().st_size / 1_048_576,
     )
     return model
 
 
 def predict_single(
-    model: xgb.XGBClassifier,
+    model: Any,
     features_df: pd.DataFrame,
 ) -> tuple[int, np.ndarray]:
     """Realiza predicción para una sola factura.
@@ -66,7 +83,7 @@ def predict_single(
 
 
 def predict_batch(
-    model: xgb.XGBClassifier,
+    model: Any,
     features_df: pd.DataFrame,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Realiza predicciones para un batch de facturas.

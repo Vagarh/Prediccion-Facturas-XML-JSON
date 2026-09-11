@@ -53,7 +53,7 @@ class RetrainingScheduler:
     def __init__(
         self,
         monitor: ModelMonitor | None = None,
-        min_recall_glosada: float = 0.7261,
+        min_recall_glosada: float = 0.80,
         months_back: int = 3,
     ) -> None:
         """Inicializa el scheduler.

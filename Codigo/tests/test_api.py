@@ -3,7 +3,7 @@
 
 import pytest
 
-from src.config import MODEL_PATH
+from src.config import MODEL_ALGORITHM, MODEL_PATH
 
 # Saltar todos los tests si el modelo no existe en disco
 pytestmark = pytest.mark.skipif(
@@ -46,7 +46,7 @@ class TestModelInfoEndpoint:
         """Model info tiene la estructura esperada."""
         response = test_client.get("/v1/model/info")
         data = response.json()
-        assert data["modelo"] == "XGBoost"
+        assert data["modelo"] == MODEL_ALGORITHM
         assert data["n_features"] == 48
         assert len(data["features"]) == 48
         assert "f1_macro" in data["metricas"]
