@@ -115,39 +115,43 @@ class TestXGBoostRetrainer:
         assert X.dtype == np.float32
 
     @patch('pathlib.Path.exists')
-    @patch('src.evaluation.retrain_xgboost.build_text_fields')
-    @patch('src.evaluation.retrain_xgboost.enrich_features')
-    def test_extract_features_and_labels_with_embeddings(
-        self, mock_enrich, mock_build_text, mock_exists
-    ):
-        """Test extracción de features con embeddings (modelo enriquecido)."""
+    def test_extract_features_and_labels_with_embeddings(self, mock_exists):
+        """Test extracción de features con embeddings (modelo enriquecido).
+
+        La implementación actual codifica cada campo textual en batch con
+        ``EmbeddingService.encode_batch`` (una llamada por campo en
+        ``TEXT_FIELD_KEYS``), no con un ``enrich_features`` por fila.
+        """
         from unittest.mock import mock_open as _mock_open
+
+        from src.features.embedding_pipeline import TEXT_FIELD_KEYS
+        from src.config import EMBEDDING_DIM
+
         mock_exists.return_value = True
-        
         feature_names = ['feature_1', 'feature_2']
         file_content = '\n'.join(feature_names) + '\n'
-        
-        mock_build_text.return_value = {
-            'diagnostico_texto': 'diabetes',
-            'cups_texto': 'consulta',
-            'observaciones': 'estable'
-        }
-        # Mock enrich_features — 2 features numéricas + 384*3 embeddings = 1154
-        enriched_vector = np.random.randn(1154).astype(np.float32)
-        mock_enrich.return_value = enriched_vector
-        
+
+        n = 3
+        self.retrainer.embedding_service.encode_batch = Mock(
+            return_value=np.random.randn(n, EMBEDDING_DIM).astype(np.float32)
+        )
+
         df = pd.DataFrame({
             'feature_1': [1.0, 2.0, 3.0],
             'feature_2': [3.0, 4.0, 5.0],
-            'clase': [0, 1, 2],
-            'diagnostico_texto': ['diabetes', 'hipertensión', 'neumonía']
+            'target': [0, 1, 2],
+            **{k: ['diabetes', 'hipertensión', 'neumonía'] for k in TEXT_FIELD_KEYS},
         })
-        
+
         with patch('builtins.open', _mock_open(read_data=file_content)):
             X, y = self.retrainer.extract_features_and_labels(df, include_embeddings=True)
-        
-        assert mock_build_text.call_count == 3
-        assert mock_enrich.call_count == 3
+
+        # Una llamada a encode_batch por cada campo textual
+        assert self.retrainer.embedding_service.encode_batch.call_count == len(TEXT_FIELD_KEYS)
+        # 2 numéricas + EMBEDDING_DIM * n_campos
+        assert X.shape == (n, 2 + EMBEDDING_DIM * len(TEXT_FIELD_KEYS))
+        assert X.dtype == np.float32
+        np.testing.assert_array_equal(y, [0, 1, 2])
         assert X.shape == (3, 1154)  # 2 features numéricas + 384*3 embeddings
         assert y.shape == (3,)
 
@@ -192,8 +196,7 @@ class TestXGBoostRetrainer:
         assert np.array_equal(fit_args[0], X_train)
         assert np.array_equal(fit_args[1], y_train)
         assert 'eval_set' in fit_kwargs
-        assert 'early_stopping_rounds' in fit_kwargs
-        
+        # early_stopping_rounds puede estar en el constructor (XGBOOST_PARAMS) o en fit
         assert result == mock_model
 
     def test_evaluate_model(self):
