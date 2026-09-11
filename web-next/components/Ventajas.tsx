@@ -6,7 +6,7 @@ import FadeIn from "./FadeIn";
 const ventajas = [
   {
     title: "Datos reales de producción",
-    desc: "633.000 facturas de 16 meses reales de Savia Salud EPS. No hay datos sintéticos ni simulaciones.",
+    desc: "1,08 millones de facturas de 26 meses reales de Savia Salud EPS. No hay datos sintéticos ni simulaciones.",
     color: "#00FF88",
   },
   {

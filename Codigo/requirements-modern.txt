@@ -1,0 +1,9 @@
+# Comparadores "modernos" de la suite de modelos (Fase 3 — best-effort).
+# Se instalan aparte del core porque arrastran torch y pueden fallar en Windows.
+#   uv pip install --python .venv/Scripts/python.exe -r Codigo/requirements-modern.txt
+# Si alguno no instala, la suite lo omite y lo documenta en el reporte.
+
+torch                      # backend para embeddings (sentence-transformers) y deep tabular
+autogluon.tabular          # AutoML: ensamble stackeado de GBDT + NN
+tabpfn                     # foundation model tabular (Prior Labs, Nature 2025)
+pytabkit                   # incluye TabM / RealMLP / otros baselines deep tabulares

@@ -75,7 +75,7 @@ export default function Nav() {
             }}
           >
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00FF88", display: "inline-block" }} />
-            Recall 89.6%
+            Recall 86.4%
           </span>
 
           {/* Mobile toggle */}

@@ -12,6 +12,16 @@
 
 **Estado:** 69% completado (11/16 tareas principales)
 
+> **⚠️ Actualización 2026-09-10/11:** el objetivo de Recall Glosada ≥0.80 ya se alcanzó sin
+> necesidad de embeddings — el modelo campeón actual es **LightGBM v3** (Recall Glosada 0.8635
+> test / 0.8599 OOT, ver `.claude/04_modelo_metricas.md`), entrenado sobre datos frescos, no
+> sobre el enriquecimiento textual. El modelo `xgb_enriched` (embeddings + GBDT) de esta fase se
+> reentrenó esta sesión contra el nuevo dataset (`src/training/model_suite.py --only-enriched`,
+> train submuestreado a 250K filas por el costo de generar embeddings en CPU) — resultado en
+> `reports/evaluations/20260910_model_suite_enriched.json` cuando termine de correr; quedaba
+> en curso al cierre de la sesión. La base v1 mencionada en el objetivo original ya no es la
+> base activa del proyecto.
+
 ---
 
 ## ARQUITECTURA DE LA INTEGRACIÓN

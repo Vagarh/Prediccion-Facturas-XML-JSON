@@ -4,9 +4,9 @@
 ### Detección temprana de glosas en el sistema de salud colombiano
 
 [![Live Demo](https://img.shields.io/badge/🌐_Demo_Live-tesismaestriaeafit.vercel.app-00D4FF?style=for-the-badge)](https://tesismaestriaeafit.vercel.app)
-[![Model AUC](https://img.shields.io/badge/AUC-0.908-00FF88?style=flat-square)](https://tesismaestriaeafit.vercel.app/#resultados)
-[![Recall](https://img.shields.io/badge/Recall-89.6%25-00D4FF?style=flat-square)](https://tesismaestriaeafit.vercel.app/#resultados)
-[![Tests](https://img.shields.io/badge/Tests-147_|_96.85%25_cobertura-8B5CF6?style=flat-square)](.github/workflows/tests.yml)
+[![Model AUC](https://img.shields.io/badge/AUC-0.906-00FF88?style=flat-square)](https://tesismaestriaeafit.vercel.app/#resultados)
+[![Recall](https://img.shields.io/badge/Recall-86.4%25-00D4FF?style=flat-square)](https://tesismaestriaeafit.vercel.app/#resultados)
+[![Tests](https://img.shields.io/badge/Tests-390_|_verde-8B5CF6?style=flat-square)](.github/workflows/tests.yml)
 [![FastAPI](https://img.shields.io/badge/API-FastAPI_+_Docker-0066FF?style=flat-square)](Codigo/src/api/)
 [![AWS](https://img.shields.io/badge/Infra-AWS_EC2_%2B_S3_%2B_CloudWatch-FFB300?style=flat-square)]()
 
@@ -42,10 +42,10 @@ En Colombia, las EPS enfrentan un ciclo vicioso de auditoría reactiva:
 
 ## 💡 La Solución
 
-Un modelo predictivo XGBoost entrenado sobre **datos reales de producción** que predice qué facturas tienen alta probabilidad de ser glosadas — **antes** de que ocurra la auditoría.
+Un modelo predictivo (LightGBM v3) entrenado sobre **datos reales de producción** que predice qué facturas tienen alta probabilidad de ser glosadas — **antes** de que ocurra la auditoría.
 
 ```
-Factura XML/JSON  →  PrivacyGuard  →  Feature Engineering  →  XGBoost  →  Score + SHAP  →  API REST
+Factura XML/JSON  →  PrivacyGuard  →  Feature Engineering  →  LightGBM  →  Score + SHAP  →  API REST
 ```
 
 **No reemplaza al auditor médico. Lo potencia.**
@@ -60,14 +60,14 @@ Factura XML/JSON  →  PrivacyGuard  →  Feature Engineering  →  XGBoost  →
 
 ## 📊 Resultados
 
-| Métrica | v1 (baseline) | v2 (ajustado) |
+| Métrica | v1 (mar-2026, XGBoost) | v3 (sep-2026, LightGBM) |
 |---------|--------------|---------------|
-| **Recall** | 82.1% | **89.6%** ✅ |
-| AUC-ROC | 0.891 | **0.908** |
-| F1-Score | 0.714 | **0.749** |
-| Precisión | 69.3% | 67.8% |
+| **Recall Glosada (prueba)** | 72.6% | **86.4%** ✅ |
+| **Recall Glosada (2 meses después)** | 53.9% ⚠️ colapsó | **86.0%** — estable |
+| AUC-ROC | 0.908 | 0.906 |
+| F1-Score macro | 0.749 | 0.758 |
 
-> El objetivo era maximizar Recall — detectar el mayor número de glosas posibles, minimizando las que se escapan.
+> El objetivo era maximizar Recall Glosada — detectar el mayor número de glosas posibles, minimizando las que se escapan. v1 lo lograba en prueba pero colapsaba semanas después por deriva del concepto; v3 se reentrenó con datos frescos y mantiene el resultado en validación out-of-time. Detalle completo en la [sección de resultados](https://tesismaestriaeafit.vercel.app/#resultados).
 
 ---
 
@@ -82,7 +82,7 @@ Factura XML/JSON  →  PrivacyGuard  →  Feature Engineering  →  XGBoost  →
 │   ├── POST /explain          → SHAP waterfall              │
 │   └── GET  /health           → Healthcheck                  │
 │                                                             │
-│   XGBoost JSON  ←→  SHAP TreeExplainer                      │
+│   LightGBM (.joblib)  ←→  SHAP TreeExplainer                │
 └───────────────────────────────────────────────────────────┘
          ↑                          ↓
     S3 (modelos)          CloudWatch (drift monitoring)
@@ -99,19 +99,19 @@ Prediccion-Facturas-XML-JSON/
 │   ├── notebooks/           # 9 notebooks: EDA → Feature Eng → Modelado → SHAP
 │   ├── src/
 │   │   ├── features/        # engineering.py — 48 features validadas
-│   │   ├── models/          # predict.py — XGBoost JSON, predict_single/batch
+│   │   ├── models/          # predict.py — XGBoost JSON o .joblib genérico, predict_single/batch
 │   │   ├── explainability/  # shap_explanations.py — TreeExplainer en español
 │   │   └── api/             # FastAPI: main.py + schemas.py (Pydantic v2)
-│   ├── tests/               # 147 tests · 96.85% cobertura
+│   ├── tests/               # 390 tests · verde
 │   └── data/
-│       └── processed/       # Train 515K · Val 78K · Test 40K (Parquet)
+│       └── processed/       # Train 842K · Val 88K · Test 80K · OOT 74K (Parquet)
 │
 ├── web-next/                # Sitio web de presentación (Next.js 16 + Turbopack)
 │   ├── app/                 # layout.tsx, page.tsx, globals.css
 │   └── components/          # Hero, Problema, Solucion, Resultados, SHAP, Infra...
 │
 ├── models/artifacts/
-│   └── 20260309_xgboost_v1.json   # Mejor modelo — AUC 0.908
+│   └── 20260910_lgbm_tuned_champion.joblib   # Modelo campeón v3 — Recall Glosada 86.4%
 │
 ├── Dockerfile               # python:3.11-slim · healthcheck · uvicorn :8000
 ├── requirements.txt
@@ -191,5 +191,5 @@ Maestría en Inteligencia Artificial · EAFIT 2026
 ---
 
 <div align="center">
-<sub>Construido con XGBoost · FastAPI · SHAP · Next.js · AWS · Docker</sub>
+<sub>Construido con LightGBM · FastAPI · SHAP · Next.js · AWS · Docker</sub>
 </div>

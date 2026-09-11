@@ -150,7 +150,7 @@ El presente trabajo de grado aborda esta problemática en el caso específico de
 
 Como respuesta, se diseñó e implementó un \textbf{modelo de inteligencia de negocio basado en analítica predictiva}, que utiliza algoritmos de aprendizaje supervisado (Random Forest, XGBoost y LightGBM) para la clasificación multiclase del estado final de las facturas (Auditada, Glosada o Devuelta). El modelo procesa de manera integrada 48 características extraídas de la cabecera de factura (\texttt{cm\_facturas}), el detalle de servicios (\texttt{cm\_detalles}) y el perfil histórico del prestador, todas disponibles sin intervención humana al momento de la radicación. La metodología CRISP-DM adaptada al dominio de salud guió el desarrollo, desde la comprensión del marco regulatorio y el mapeo de procesos mediante entrevistas con auditores, hasta la ingeniería de características y la validación del modelo con datos históricos de la organización.
 
-Los resultados demuestran la viabilidad técnica de la propuesta: el modelo XGBoost, seleccionado como el de mejor desempeño, alcanzó un \textbf{F1-Score Macro de 0.7490} y un \textbf{AUC-ROC (OvR) de 0.9078} sobre un conjunto de prueba de 40,193 facturas. Tras el enriquecimiento del dataset con campos textuales clínicos (diagnósticos CIE-10, códigos CUPS y observaciones de auditoría) y el reentrenamiento del modelo, el \textbf{Recall de la clase Glosada ascendió a 0.8961}, superando la meta operativa de 0.80. El análisis de explicabilidad mediante SHAP identificó que las variables más determinantes son la complejidad administrativa (ítems con autorización previa), la complejidad clínica (diversidad diagnóstica) y el riesgo compuesto (valor de factura ponderado por la tasa histórica de glosa del prestador). La validación temporal (Out-of-Time) con 223,621 facturas de agosto a diciembre de 2025 reveló una degradación del 20.1\% en F1-Score, atribuida a una \textbf{deriva del concepto}: la proporción de facturas glosadas se incrementó del 40.2\% al 67.5\%, confirmando la necesidad de un sistema de re-entrenamiento periódico.
+Los resultados demuestran la viabilidad técnica de la propuesta, incluyendo un hallazgo metodológico relevante sobre su sostenibilidad en producción. Un primer modelo XGBoost (datos marzo 2024-julio 2025) alcanzó un \textbf{F1-Score Macro de 0.7490} y un \textbf{AUC-ROC (OvR) de 0.9078} sobre un conjunto de prueba de 40,193 facturas, pero con un \textbf{Recall de la clase Glosada de 0.7261}, por debajo de la meta operativa de 0.80; su validación temporal (Out-of-Time) sobre 223,621 facturas de agosto a diciembre de 2025 reveló además una degradación del 20.1\% en F1-Score, atribuida a una \textbf{deriva del concepto}: la proporción de facturas glosadas se incrementó del 40.2\% al 67.5\% respecto a la ventana de entrenamiento. Este hallazgo motivó un reentrenamiento con datos frescos (1,084,637 facturas radicadas entre marzo 2024 y mayo 2026) y una comparación sistemática de seis algoritmos con búsqueda de hiperparámetros vía Optuna (XGBoost, LightGBM, CatBoost, AutoML y un modelo tabular profundo). El modelo campeón resultante, \textbf{LightGBM}, alcanzó un \textbf{Recall de la clase Glosada de 0.8635} sobre el conjunto de prueba —superando la meta operativa— y, de forma crítica, \textbf{mantuvo 0.8599 dos meses después} en una nueva validación out-of-time: una degradación relativa de apenas 0.4\%, frente al 25.2\% observado en la versión anterior. El análisis de explicabilidad mediante SHAP identificó que las variables más determinantes son la complejidad administrativa (ítems con autorización previa), la complejidad clínica (diversidad diagnóstica) y el riesgo compuesto (valor de factura ponderado por la tasa histórica de glosa del prestador) —consistentes entre ambas versiones del modelo, confirmando que la mejora provino de datos actualizados y ajuste de hiperparámetros, no de un cambio en la lógica de negocio subyacente.
 
 Adicionalmente, se propone una \textbf{arquitectura técnica de integración} (pipeline ETL, API REST, feature store) que establece la hoja de ruta para la implementación operativa en una fase posterior.
 
@@ -169,7 +169,7 @@ This thesis addresses this problem in the specific case of \textbf{Savia Salud E
 
 As a response, a \textbf{business intelligence model based on predictive analytics} was designed and implemented, using supervised learning algorithms (Random Forest, XGBoost, and LightGBM) for multiclass classification of final invoice status (Audited, Rejected, or Returned). The model integrates 48 features extracted from the invoice header (\texttt{cm\_facturas}), service line items (\texttt{cm\_detalles}), and provider historical profiles, all available without human intervention at the time of filing. An adapted CRISP-DM methodology guided development, from regulatory framework understanding and process mapping through auditor interviews, to feature engineering and model validation with historical organizational data.
 
-Results demonstrate the technical viability of the proposal: the XGBoost model, selected as the best performer, achieved a \textbf{Macro F1-Score of 0.7490} and an \textbf{AUC-ROC (OvR) of 0.9078} on a test set of 40,193 invoices. After enriching the dataset with clinical text fields (ICD-10 diagnoses, CUPS codes, and auditor observations) and retraining the model, the \textbf{Recall for the Rejected class reached 0.8961}, surpassing the operational target of 0.80. SHAP explainability analysis identified administrative complexity (items requiring prior authorization), clinical complexity (diagnostic diversity), and composite risk (invoice value weighted by provider's historical rejection rate) as the most influential predictors. Out-of-Time validation on 223,621 invoices from August to December 2025 revealed a 20.1\% F1-Score degradation, attributed to \textbf{concept drift}: the proportion of rejected invoices increased from 40.2\% to 67.5\%, confirming the need for periodic model retraining.
+Results demonstrate the technical viability of the proposal, including a relevant methodological finding about its production sustainability. An initial XGBoost model (data from March 2024 to July 2025) achieved a \textbf{Macro F1-Score of 0.7490} and an \textbf{AUC-ROC (OvR) of 0.9078} on a test set of 40,193 invoices, but with a \textbf{Recall for the Rejected class of 0.7261}, below the 0.80 operational target; its Out-of-Time validation on 223,621 invoices from August to December 2025 further revealed a 20.1\% F1-Score degradation, attributed to \textbf{concept drift}: the proportion of rejected invoices increased from 40.2\% to 67.5\% relative to the training window. This finding prompted retraining on fresh data (1,084,637 invoices filed between March 2024 and May 2026) and a systematic comparison of six algorithms with Optuna hyperparameter search (XGBoost, LightGBM, CatBoost, AutoML, and a deep tabular model). The resulting champion model, \textbf{LightGBM}, achieved a \textbf{Recall for the Rejected class of 0.8635} on the test set — surpassing the operational target — and, critically, \textbf{maintained 0.8599 two months later} in a new out-of-time validation: a relative degradation of only 0.4\%, versus the 25.2\% observed in the previous version. SHAP explainability analysis identified administrative complexity (items requiring prior authorization), clinical complexity (diagnostic diversity), and composite risk (invoice value weighted by provider's historical rejection rate) as the most influential predictors — consistent across both model versions, confirming that the improvement came from updated data and hyperparameter tuning, not a change in the underlying business logic.
 
 Additionally, a \textbf{technical integration architecture} (ETL pipeline, REST API, feature store) is proposed, establishing the roadmap for operational implementation in a subsequent phase.
 
@@ -1747,12 +1747,12 @@ Tras la ejecución de las fases de preparación de datos, ingeniería de caracte
 %---------------------------------------------------
 \section{Métricas de Desempeño del Modelo Predictivo}
 
-\subsection{Resultados por Algoritmo}
+\subsection{Resultados por Algoritmo — Fase 4 (modelo inicial)}
 Se entrenaron tres modelos de ensamble (XGBoost, LightGBM, y RandomForest) para la tarea de clasificación multiclase. La evaluación se realizó sobre el conjunto de prueba (40,193 facturas de junio-julio 2025), y los resultados comparativos se presentan en la Tabla \ref{tab:resultados_modelos}.
 
 \begin{table}[H]
 \centering
-\caption{Comparación de métricas de desempeño por algoritmo en el conjunto de prueba.}
+\caption{Comparación de métricas de desempeño por algoritmo en el conjunto de prueba (Fase 4, datos mar-2024/jul-2025).}
 \label{tab:resultados_modelos}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
@@ -1762,12 +1762,37 @@ XGBoost v1 & 0.7490 & 0.9078 & 0.7261 & 0.7628 \\
 LightGBM & 0.7441 & 0.9063 & 0.7124 & 0.7433 \\
 RandomForest & 0.7217 & 0.8966 & 0.7406 & 0.5854 \\
 \midrule
-\textbf{XGBoost v2 (reentrenado)} & 0.7114 & 0.9028 & \textbf{0.8961} & --- \\
+XGBoost v2 (reentrenado) & 0.7114 & 0.9028 & 0.8961 & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-El modelo \textbf{XGBoost demostró el mejor desempeño global} y fue seleccionado como modelo base para las fases subsecuentes de análisis y despliegue. En su versión inicial (v1), obtuvo un F1-Score Macro de 0.7490 y un AUC-ROC de 0.9078, cumpliendo el criterio de AUC ($\geq 0.85$) pero con un Recall Glosada de 0.7261, por debajo de la meta operativa de 0.80. Tras el enriquecimiento del dataset con campos textuales clínicos (diagnósticos CIE-10, códigos CUPS y observaciones de auditoría extraídos desde la base de datos) y el reentrenamiento del modelo (\textbf{XGBoost v2}), el Recall Glosada ascendió a \textbf{0.8961}, superando la meta establecida ($\geq 0.80$).
+En esta fase inicial, el modelo \textbf{XGBoost demostró el mejor desempeño global} y fue seleccionado como modelo base. En su versión v1 obtuvo un F1-Score Macro de 0.7490 y un AUC-ROC de 0.9078, cumpliendo el criterio de AUC ($\geq 0.85$) pero con un Recall Glosada de 0.7261, por debajo de la meta operativa de 0.80. Tras el enriquecimiento del dataset con campos textuales clínicos (diagnósticos CIE-10, códigos CUPS y observaciones de auditoría) y el reentrenamiento del modelo (XGBoost v2), el Recall Glosada ascendió a 0.8961. Sin embargo, como se detalla en la Sección \ref{subsec:oot_results}, esta ganancia resultó parcialmente ilusoria: la validación Out-of-Time reveló que v2 colapsaba a un Recall Glosada de 0.5389 apenas cinco meses después, producto de una deriva del concepto no corregida por el enriquecimiento textual — que operaba sobre los mismos datos desactualizados.
+
+\subsection{Reentrenamiento con Datos Frescos y Suite Comparativa de Modelos (v3)}
+\label{subsec:suite_v3}
+Ante el hallazgo de deriva del concepto (Sección \ref{subsec:oot_results}), se extrajo un dataset fresco de \textbf{1,084,637 facturas} radicadas entre marzo de 2024 y mayo de 2026 —incorporando la totalidad del período que antes se usaba solo para validación Out-of-Time— y se re-derivó el mismo vector de 48 características mediante el pipeline de ingeniería de variables descrito en el Marco Metodológico (log-transformaciones, flags binarios e interacciones). Sobre este dataset se entrenó y evaluó una suite comparativa de seis modelos, todos bajo división temporal estricta (entrenamiento marzo 2024-noviembre 2025, validación diciembre 2025-enero 2026, prueba febrero-marzo 2026, Out-of-Time abril-mayo 2026) y búsqueda de hiperparámetros con Optuna donde aplica: el propio XGBoost v2 reproducido sobre datos frescos (referencia), XGBoost, LightGBM y CatBoost afinados, un modelo tabular profundo (TabM) y AutoGluon (AutoML). La Tabla \ref{tab:suite_v3} resume los resultados.
+
+\begin{table}[H]
+\centering
+\caption{Suite comparativa de modelos sobre datos frescos (mar-2024/may-2026). Campeón en negrita.}
+\label{tab:suite_v3}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Modelo} & \textbf{F1 Macro (prueba)} & \textbf{Recall Glosada (prueba)} & \textbf{F1 Macro (OOT)} & \textbf{Recall Glosada (OOT)} \\
+\midrule
+XGBoost v2 reproducido & 0.7298 & 0.9164 & 0.6959 & 0.8884 \\
+XGBoost afinado & 0.7595 & 0.8465 & 0.7245 & 0.8385 \\
+\textbf{LightGBM afinado} & \textbf{0.7577} & \textbf{0.8635} & \textbf{0.7243} & \textbf{0.8599} \\
+CatBoost afinado & 0.7236 & 0.8563 & 0.7088 & 0.8351 \\
+TabM (deep tabular) & 0.6948 & 0.8422 & 0.6906 & 0.8361 \\
+AutoGluon (AutoML)\footnotemark & 0.7079 & 0.7872 & 0.7012 & 0.7745 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\footnotetext{AutoGluon solo alcanzó a entrenar 3 de los $\sim$8-10 modelos base que \texttt{best\_quality} evalúa habitualmente (2 variantes de LightGBM y una red neuronal), por una interrupción del proceso de entrenamiento antes de completar el resto de candidatos; su resultado se reporta como referencia parcial, no como el techo real de AutoML para este problema.}
+
+XGBoost afinado y LightGBM afinado quedaron prácticamente empatados en F1-macro de prueba (diferencia de 0.0018, dentro del margen de ruido de muestreo). Se rompió el empate a favor de \textbf{LightGBM}, que ofrece mayor Recall Glosada —la métrica primaria del proyecto (0.8635 vs. 0.8465 en prueba; 0.8599 vs. 0.8385 en OOT)— y una degradación test$\to$OOT ligeramente menor. Los seis modelos, entrenados sobre datos frescos, superan cómodamente el desempeño OOT del v2 original, confirmando que la causa del colapso previo era la ventana temporal de entrenamiento, no una limitación del algoritmo.
 
 La importancia de variables por ganancia (Figura \ref{fig:feature_importance_gain}) muestra las 20 características más relevantes para cada modelo, revelando que XGBoost prioriza la diversidad diagnóstica mientras que LightGBM enfatiza variables temporales y financieras.
 
@@ -1787,12 +1812,12 @@ Dado que la clase Glosada representa el mayor impacto financiero, se analizó la
 \label{fig:pr_curve_glosada}
 \end{figure}
 
-\subsection{Métricas Detalladas del Modelo Seleccionado (XGBoost)}
-Las métricas de desempeño del modelo XGBoost para cada una de las tres clases se detallan en la Tabla \ref{tab:metricas_clase}.
+\subsection{Métricas Detalladas del Modelo Inicial (XGBoost v1)}
+Las métricas de desempeño del modelo XGBoost v1 para cada una de las tres clases se detallan en la Tabla \ref{tab:metricas_clase}.
 
 \begin{table}[H]
 \centering
-\caption{Métricas detalladas por clase de facturación para el modelo XGBoost.}
+\caption{Métricas detalladas por clase de facturación para el modelo XGBoost v1 (Fase 4).}
 \label{tab:metricas_clase}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
@@ -1808,7 +1833,30 @@ Las métricas de desempeño del modelo XGBoost para cada una de las tres clases 
 \end{tabular}
 \end{table}
 
-El modelo v1 exhibe un desempeño balanceado entre las clases. El Recall para la clase Glosada (0.7261) no alcanzó la meta inicial del proyecto (0.80) en esta versión; sin embargo, tras el reentrenamiento con dataset enriquecido (XGBoost v2), esta limitación fue superada, alcanzando un Recall Glosada de \textbf{0.8961}.
+El modelo v1 exhibe un desempeño balanceado entre las clases. El Recall para la clase Glosada (0.7261) no alcanzó la meta inicial del proyecto (0.80) en esta versión.
+
+\subsection{Métricas Detalladas del Modelo Campeón (LightGBM v3)}
+La Tabla \ref{tab:metricas_clase_v3} detalla las métricas del modelo desplegado actualmente en la API (LightGBM v3, Sección \ref{subsec:suite_v3}), sobre el conjunto de prueba de 79,803 facturas (febrero-marzo 2026).
+
+\begin{table}[H]
+\centering
+\caption{Métricas detalladas por clase de facturación para el modelo campeón LightGBM v3.}
+\label{tab:metricas_clase_v3}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Clase} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Soporte (n)} \\
+\midrule
+0 - Auditada & 0.6027 & 0.5883 & 0.5954 & 16,566 \\
+1 - Glosada & 0.8709 & 0.8635 & 0.8672 & 55,620 \\
+2 - Devuelta & 0.7690 & 0.8568 & 0.8105 & 7,617 \\
+\midrule
+\textbf{Macro Avg} & 0.7476 & 0.7695 & 0.7577 & 79,803 \\
+\textbf{Weighted Avg} & 0.8055 & 0.8058 & 0.8054 & 79,803 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El modelo v3 concentra su desempeño en la clase Glosada (Precision 0.8709, Recall 0.8635), coherente con que ahora representa el 66\% de las facturas del dataset fresco —frente al 40\% de la ventana 2024-2025 usada en v1/v2— y con la métrica primaria del proyecto. Como contraparte, el Recall de Auditada baja a 0.5883 (vs. 0.7544 en v1): el modelo prioriza correctamente no dejar pasar glosas a costa de marcar como Glosada o Devuelta algunas facturas que en realidad se auditan sin problema, un trade-off deliberado y alineado con el objetivo de negocio (el costo de una glosa no detectada supera ampliamente el de una revisión manual adicional).
 
 %---------------------------------------------------
 % SECCIÓN 8.2: MATRIZ DE CONFUSIÓN
@@ -1992,10 +2040,10 @@ Esta capacidad de explicación individual es la que permite transformar el proce
 
 \begin{tcolorbox}[colback=blue!5, colframe=minsalud, fonttitle=\bfseries, title=Hallazgos Principales del Modelo Predictivo]
 \begin{itemize}
-    \item \textbf{Mejor algoritmo:} Se seleccionó \textbf{XGBoost} por su robustez y desempeño balanceado, alcanzando un \textbf{F1-Score Macro de 0.7490} y un \textbf{AUC-ROC de 0.9078}.
-    \item \textbf{Recall de Glosada superado:} El modelo v2 (reentrenado con dataset enriquecido) identifica correctamente el \textbf{89.6\%} de las facturas que serán glosadas, superando la meta operativa del 80\%.
-    \item \textbf{Factores predictivos clave:} La complejidad (cantidad de diagnósticos e ítems con autorización), junto con el riesgo compuesto (valor de factura multiplicado por la tasa histórica de glosa del prestador), son los principales determinantes del estado de una factura.
-    \item \textbf{Hallazgo crítico (Deriva del Concepto):} Se demostró una degradación del rendimiento del 20.1\% en datos fuera del período de entrenamiento, lo que confirma la necesidad absoluta de un monitoreo y re-entrenamiento periódico del modelo como parte de su ciclo de vida en producción.
+    \item \textbf{Mejor algoritmo (modelo desplegado, v3):} Tras una suite comparativa de seis modelos sobre datos frescos, se seleccionó \textbf{LightGBM} por su Recall Glosada y estabilidad temporal, alcanzando un \textbf{F1-Score Macro de 0.7577} y un \textbf{AUC-ROC de 0.9060} en prueba.
+    \item \textbf{Recall de Glosada superado y estable:} El modelo v3 identifica correctamente el \textbf{86.35\%} de las facturas que serán glosadas en prueba, superando la meta operativa del 80\%, y se mantiene en \textbf{85.99\%} dos meses después en validación Out-of-Time —una degradación relativa de apenas 0.4\%, frente al 25.2\% del modelo anterior—.
+    \item \textbf{Factores predictivos clave:} La complejidad (cantidad de diagnósticos e ítems con autorización), junto con el riesgo compuesto (valor de factura multiplicado por la tasa histórica de glosa del prestador), son los principales determinantes del estado de una factura —consistentes entre las versiones v1 y v3 del modelo.
+    \item \textbf{Hallazgo crítico (Deriva del Concepto) y su resolución:} El modelo v1/v2 mostró una degradación del rendimiento del 20.1\% en datos fuera del período de entrenamiento (Sección \ref{subsec:oot_results}), lo que confirmó la necesidad de monitoreo y re-entrenamiento periódico. En septiembre de 2026 se ejecutó ese ciclo por primera vez de forma completa —detección de drift, extracción de datos frescos, nueva suite de modelos, validación y despliegue (Sección \ref{subsec:suite_v3})—, validando empíricamente la arquitectura de MLOps propuesta en este trabajo.
 \end{itemize}
 \end{tcolorbox}
 
@@ -2052,6 +2100,9 @@ En síntesis, el pipeline de producción robusto para este sistema adopta el sig
 
 Este ciclo convierte el concept drift de un riesgo pasivo en un mecanismo de mejora continua del sistema.
 
+\subsection{Validación Empírica del Ciclo Propuesto (septiembre de 2026)}
+El ciclo \textit{detectar} $\rightarrow$ \textit{reentrenar} $\rightarrow$ \textit{validar} $\rightarrow$ \textit{desplegar} descrito arriba no quedó solo en el diseño: se ejecutó de forma completa cinco meses después del hallazgo original de deriva. El drift se reconfirmó cuantitativamente mediante Population Stability Index (PSI) entre la distribución de entrenamiento original (marzo 2024-julio 2025) y la distribución fresca (marzo 2024-noviembre 2025): de las 48 variables del modelo, 10 superaron el umbral de alerta (PSI $\geq$ 0.15), encabezadas por el historial transaccional del prestador (\texttt{total\_facturas\_nit}, PSI = 3.30) y la presencia de factura electrónica (\texttt{tiene\_fev}, PSI = 1.38) —variables que, por construcción, acumulan más información a medida que se extiende la ventana temporal de extracción—. Ante esta confirmación, se extrajeron datos frescos, se evaluó la suite de seis modelos de la Sección \ref{subsec:suite_v3} y se promovió el modelo LightGBM resultante a producción tras superar las pruebas de regresión automatizadas del sistema. El resultado —una degradación Out-of-Time de 0.4\% frente al 25.2\% original— constituye evidencia empírica directa de que el patrón \textit{model validation gate} propuesto en este trabajo es efectivo para sostener el desempeño del sistema en producción.
+
 %---------------------------------------------------
 \section{Limitaciones del Estudio}
 %---------------------------------------------------
@@ -2061,7 +2112,7 @@ Los resultados de este trabajo deben interpretarse considerando las siguientes l
 \begin{enumerate}
     \item \textbf{Generalización a otras EPS:} El dataset proviene exclusivamente de Savia Salud EPS (Medellín, Colombia). La distribución de prestadores, régimen de afiliación, mix de servicios y tasas históricas de glosa son específicas de esta organización. La transferencia del modelo a otras EPS requeriría validación y posiblemente reentrenamiento con datos locales.
 
-    \item \textbf{Ventana temporal limitada:} El período de entrenamiento (16 meses: marzo 2024 a julio 2025) puede no capturar la totalidad de los ciclos regulatorios del sector salud colombiano. Cambios normativos significativos —como actualizaciones a la Circular 007 o nuevas versiones de los estándares RIPS— podrían introducir concept drift adicional no representado en los datos de entrenamiento.
+    \item \textbf{Ventana temporal limitada:} El período de entrenamiento del modelo v3 (21 meses: marzo 2024 a noviembre 2025, ampliado desde los 16 meses de v1/v2 tras el hallazgo de deriva del concepto) sigue sin capturar la totalidad de los ciclos regulatorios del sector salud colombiano. Cambios normativos significativos —como actualizaciones a la Circular 007 o nuevas versiones de los estándares RIPS— podrían introducir concept drift adicional no representado en los datos de entrenamiento; de hecho, el propio análisis de horizonte de etiquetas confiable (Sección \ref{subsec:suite_v3}) mostró que las facturas radicadas en junio-agosto de 2026 aún no tenían su ciclo de auditoría completo al momento de extraer los datos, por lo que quedaron fuera del reentrenamiento. Esto refuerza que el monitoreo y reentrenamiento periódico es un requisito estructural, no un ajuste puntual.
 
     \item \textbf{Dependencia de la calidad de datos RIPS/FEV:} Las 48 características del modelo provienen de los datos estructurados de la factura electrónica. Instituciones prestadoras con menor madurez digital o mayor tasa de errores en la generación de RIPS y FEV tendrían inputs de menor calidad, lo que podría degradar el rendimiento del modelo incluso sin concept drift en la distribución real de clases.
 
@@ -2069,7 +2120,7 @@ Los resultados de este trabajo deben interpretarse considerando las siguientes l
 
     \item \textbf{Parsers JSON/XML no implementados:} La Fase 1D del proyecto —desarrollo de los parsers de producción para JSON RIPS y XML FEV directamente desde los archivos originales— no fue implementada. El pipeline actual opera sobre features pre-computadas extraídas de la base de datos MySQL, lo que lo hace dependiente de la infraestructura de datos de Savia Salud EPS y no portable a entornos que no tengan esta BD.
 
-    \item \textbf{Umbral de decisión sin optimizar:} El Recall de Glosada del modelo v1 (0.726) no alcanzó la meta (0.80) al umbral por defecto (0.5). Esta limitación fue superada mediante reentrenamiento con dataset enriquecido (XGBoost v2, Recall Glosada = 0.8961). No obstante, la calibración del umbral óptimo de decisión requiere validación con el equipo de auditores para determinar el balance aceptable entre carga de trabajo adicional y glosas detectadas.
+    \item \textbf{Umbral de decisión sin optimizar:} El Recall de Glosada del modelo v1 (0.726) no alcanzó la meta (0.80) al umbral por defecto (0.5). Esta limitación fue superada mediante reentrenamiento con datos frescos y ajuste de hiperparámetros (LightGBM v3, Recall Glosada = 0.8635 en prueba, 0.8599 en Out-of-Time). No obstante, la calibración del umbral óptimo de decisión requiere validación con el equipo de auditores para determinar el balance aceptable entre carga de trabajo adicional y glosas detectadas.
 \end{enumerate}
 
 \chapter{Conclusiones}
@@ -2077,13 +2128,13 @@ Los resultados de este trabajo deben interpretarse considerando las siguientes l
 \begin{enumerate}
     \item \textbf{Transformación normativa como catalizador:} La Resolución 2275 de 2023 ha creado las condiciones técnicas necesarias (datos estructurados en JSON/XML) para la implementación de modelos de inteligencia artificial en la auditoría de cuentas médicas, transformando un requisito legal en una oportunidad de innovación.
 
-    \item \textbf{Viabilidad técnica demostrada empíricamente:} El modelo XGBoost alcanzó un F1-Score Macro de 0.7490 y un AUC-ROC de 0.9078 sobre 40,193 facturas de prueba, demostrando que es factible predecir el estado de auditoría (Auditada, Glosada o Devuelta) a partir de 48 características extraídas automáticamente de los datos de radicación, sin intervención humana previa. Tras el enriquecimiento del dataset con campos textuales clínicos y el reentrenamiento del modelo (XGBoost v2), el Recall de la clase Glosada ascendió a \textbf{0.8961}, superando la meta operativa de 0.80 establecida al inicio del proyecto.
+    \item \textbf{Viabilidad técnica demostrada empíricamente:} El modelo XGBoost inicial (v1) alcanzó un F1-Score Macro de 0.7490 y un AUC-ROC de 0.9078 sobre 40,193 facturas de prueba, demostrando que es factible predecir el estado de auditoría (Auditada, Glosada o Devuelta) a partir de 48 características extraídas automáticamente de los datos de radicación, sin intervención humana previa. Tras detectar y corregir una deriva del concepto mediante reentrenamiento con datos frescos y una suite comparativa de algoritmos (Sección \ref{subsec:suite_v3}), el modelo campeón desplegado (\textbf{LightGBM v3}) alcanzó un Recall de la clase Glosada de \textbf{0.8635} en prueba y \textbf{0.8599} dos meses después en validación Out-of-Time, superando de forma estable la meta operativa de 0.80 establecida al inicio del proyecto.
 
     \item \textbf{Problema operativo cuantificado:} El análisis mediante Dinámica de Sistemas demuestra que el sistema actual de auditoría es inherentemente inestable, con rezagos crecientes que comprometen la liquidez de la red prestadora. El modelo predictivo permite priorizar la cola de auditoría en minutos, atacando directamente el cuello de botella de hasta 90 días.
 
     \item \textbf{Explicabilidad como diferenciador:} El análisis SHAP reveló que las decisiones del modelo se fundamentan en patrones de negocio lógicos: complejidad administrativa (ítems con autorización), complejidad clínica (diversidad diagnóstica) y riesgo compuesto (valor $\times$ historial del prestador). Esta transparencia permite que el auditor comprenda y confíe en las recomendaciones del sistema.
 
-    \item \textbf{Concept drift como riesgo operativo real:} La validación Out-of-Time reveló una degradación del 20.1\% en F1-Score entre junio--julio y agosto--diciembre de 2025, causada por un cambio en la proporción de glosas del 40.2\% al 67.5\%. Este hallazgo confirma que un modelo predictivo en producción requiere un sistema de monitoreo y re-entrenamiento periódico (recomendado: trimestral) como parte integral de su ciclo de vida.
+    \item \textbf{Concept drift como riesgo operativo real —y mitigable:} La validación Out-of-Time reveló una degradación del 20.1\% en F1-Score entre junio--julio y agosto--diciembre de 2025, causada por un cambio en la proporción de glosas del 40.2\% al 67.5\%. Este hallazgo confirmó que un modelo predictivo en producción requiere un sistema de monitoreo y re-entrenamiento periódico (recomendado: trimestral) como parte integral de su ciclo de vida. En septiembre de 2026 se ejecutó ese ciclo por primera vez —confirmación cuantitativa vía PSI, extracción de datos frescos, nueva suite comparativa y despliegue del modelo campeón—, con la degradación Out-of-Time reduciéndose de 25.2\% a apenas 0.4\% en Recall Glosada, validando empíricamente que el riesgo es mitigable con la arquitectura de MLOps propuesta.
 
     \item \textbf{Disponibilidad de datos para predicción inmediata:} Se verificó que las 48 características utilizadas por el modelo provienen de fuentes disponibles al momento de la radicación: cabecera de factura (16 features), detalle de servicios del XML/JSON (21 features) y perfil histórico del prestador pre-calculado (11 features). Ninguna requiere que un auditor haya revisado la factura, habilitando el triaje automático.
 
@@ -2097,7 +2148,7 @@ Los resultados de este trabajo deben interpretarse considerando las siguientes l
 \subsection*{Para Savia Salud EPS}
 
 \begin{enumerate}
-    \item \textbf{Implementar re-entrenamiento periódico:} La deriva del concepto documentada (degradación del 20.1\% en F1-Score en 5 meses) exige un ciclo de re-entrenamiento trimestral del modelo con datos recientes, acompañado de un dashboard de monitoreo de métricas en producción.
+    \item \textbf{Institucionalizar el re-entrenamiento periódico:} La deriva del concepto documentada (degradación del 20.1\% en F1-Score en 5 meses) exige un ciclo de re-entrenamiento trimestral del modelo con datos recientes, acompañado de un dashboard de monitoreo de métricas en producción. Este trabajo ya ejecutó dicho ciclo una vez de forma manual (septiembre de 2026, Sección \ref{subsec:suite_v3}); la recomendación es automatizarlo mediante el \texttt{RetrainingScheduler} y el monitoreo PSI ya implementados en el código del proyecto, en vez de depender de una intervención ad-hoc.
 
     \item \textbf{Piloto de triaje inteligente:} Ejecutar un piloto controlado donde el modelo clasifique facturas en tres colas de riesgo (bajo, medio, alto) y se mida el impacto real en tiempos de auditoría y precisión de decisiones humanas.
 

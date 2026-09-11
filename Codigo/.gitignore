@@ -30,6 +30,9 @@ models/artifacts/*.h5
 # Artefactos SHAP (NPZ puede ser grande)
 reports/evaluations/*.npz
 
+# ── LOGS DE ENTRENAMIENTO ─────────────────────────────────────────────────────
+catboost_info/
+
 # ── PYTHON ───────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]

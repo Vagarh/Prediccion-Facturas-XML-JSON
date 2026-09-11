@@ -132,7 +132,7 @@ export default function Arquitectura() {
                 <div className="grid md:grid-cols-3 gap-3">
                   {[
                     { label: "Contenedor FastAPI", sub: "Docker · healthcheck /health", color: "#0066FF" },
-                    { label: "XGBoost v2", sub: "48 features · inference < 200ms", color: "#8B5CF6" },
+                    { label: "LightGBM v3", sub: "48 features · inference < 200ms", color: "#8B5CF6" },
                     { label: "SHAP TreeExplainer", sub: "Top-5 factores por predicción", color: "#00D4FF" },
                   ].map((c) => (
                     <div key={c.label} className="rounded-lg p-3" style={{ background: "#10111A", border: `1px solid ${c.color}20` }}>
@@ -158,7 +158,7 @@ export default function Arquitectura() {
                     <Database size={13} color="#8B5CF6" />
                     <p style={{ fontFamily: "var(--font-code)", fontSize: "0.65rem", color: "#3D4461" }}>DATOS · S3</p>
                   </div>
-                  {["Model artifacts versionados", "Dataset Parquet 633K facturas", "Logs de predicciones (sin PII)"].map((i) => (
+                  {["Model artifacts versionados", "Dataset Parquet 1.08M facturas", "Logs de predicciones (sin PII)"].map((i) => (
                     <p key={i} style={{ fontSize: "0.72rem", color: "#8892B0", lineHeight: 1.8 }}>
                       <span style={{ color: "#8B5CF6" }}>›</span> {i}
                     </p>

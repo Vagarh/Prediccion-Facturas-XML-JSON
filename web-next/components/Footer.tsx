@@ -9,6 +9,9 @@ export default function Footer() {
           <p style={{ fontSize: "0.7rem", color: "#2A2D3E", marginTop: "0.25rem" }}>
             Analítica Predictiva para Auditoría Prestacional · Savia Salud EPS
           </p>
+          <p style={{ fontSize: "0.65rem", color: "#2A2D3E", marginTop: "0.25rem", fontFamily: "var(--font-code)" }}>
+            Modelo v3 (LightGBM) · datos hasta mayo 2026
+          </p>
         </div>
         <div className="flex items-center gap-6">
           <a
@@ -36,7 +39,7 @@ export default function Footer() {
             }}
           >
             <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#00FF88", display: "inline-block" }} />
-            Recall 89.6%
+            Recall 86.4%
           </span>
         </div>
       </div>

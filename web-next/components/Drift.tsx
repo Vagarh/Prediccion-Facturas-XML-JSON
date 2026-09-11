@@ -39,8 +39,8 @@ export default function Drift() {
             <span className="grad-text">al día automáticamente.</span>
           </h2>
           <p style={{ color: "#8892B0", fontSize: "1.05rem", maxWidth: 540, margin: "0 auto", lineHeight: 1.75 }}>
-            Los patrones de facturación cambian con cada reforma normativa.
-            El sistema detecta drift y dispara reentrenamiento sin intervención manual.
+            Los patrones de facturación cambian con el tiempo. Así se detectó — y se corrigió —
+            el drift que llevó al reentrenamiento de septiembre 2026 mostrado abajo.
           </p>
         </FadeIn>
 
@@ -67,15 +67,15 @@ export default function Drift() {
                   <AlertTriangle size={16} />
                 </div>
                 <div>
-                  <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>Alerta de Drift Detectado</p>
+                  <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>Alerta de Drift Detectado (real)</p>
                   <p style={{ color: "#8892B0", fontSize: "0.7rem", fontFamily: "var(--font-code)", marginTop: 2 }}>
-                    2026-04-13 · 3 features afectadas
+                    2026-09-10 · 10 de 48 features afectadas · PSI medio 0.25
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2.5 mb-6">
-                {["vr_factura (PSI: 0.34)", "dias_estancia (PSI: 0.28)", "num_procedimientos (PSI: 0.22)"].map((f) => (
+                {["total_facturas_nit (PSI: 3.30)", "tiene_fev (PSI: 1.38)", "dias_radicacion_promedio_nit (PSI: 0.94)"].map((f) => (
                   <div
                     key={f}
                     className="flex items-center justify-between rounded-xl px-4 py-2.5"
@@ -105,7 +105,7 @@ export default function Drift() {
               >
                 <RefreshCw size={13} color="#00FF88" />
                 <span style={{ fontSize: "0.78rem", color: "#00FF88" }}>
-                  Reentrenamiento programado para el 2026-05-01
+                  Reentrenado con datos frescos — v3 desplegado el 2026-09-11
                 </span>
               </div>
             </motion.div>
