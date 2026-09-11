@@ -24,7 +24,7 @@ Este archivo maestro contiene solo el estado actual y referencias a módulos. Pa
 
 ---
 
-## 0. ESTADO ACTUAL DEL PROYECTO *(Actualizado: 2026-04-13)*
+## 0. ESTADO ACTUAL DEL PROYECTO *(Actualizado: 2026-09-11)*
 
 ### Avance por Fase
 
@@ -36,64 +36,103 @@ Este archivo maestro contiene solo el estado actual y referencias a módulos. Pa
 | **1C** | Extracción y corrección dataset entrenamiento | ✅ Completada | 100% |
 | **1D** | Parsers JSON RIPS + XML FEV | ⏳ Pendiente | 0% |
 | **2** | EDA | ✅ Completada | 100% |
-| **3** | Feature Engineering | ✅ Completada (right-censoring corregido y verificado) | 100% |
-| **4** | Entrenamiento del Modelo | ✅ Completada (v2 — Recall Glosada 0.8961 ≥ meta 0.80) | 100% |
-| **5** | Explicabilidad (XAI) | ✅ Completada | 100% |
-| **5B** | Validación contra Datos Reales | ✅ Completada (con hallazgos críticos sobre IA Previa) | 100% |
-| **6** | API REST | ✅ Completada | 100% |
-| **6B** | Suite de Testing de Validación | ✅ Completada (380 tests, 83.24% cobertura) | 100% |
-| **7** | Tesis (main.tex) | 🔄 **En progreso** | ~90% |
-| **8** | **Integración LLM Local** | 🔄 **En progreso** | **50%** |
+| **3** | Feature Engineering | ✅ Completada (right-censoring re-aplicado, horizonte movido a jun-2026) | 100% |
+| **4** | Entrenamiento del Modelo | ✅ Completada (**v3 — LightGBM, Recall Glosada 0.8635 test / 0.8599 OOT**) | 100% |
+| **5** | Explicabilidad (XAI) | ✅ Completada (SHAP refrescado para v3) | 100% |
+| **5B** | Validación contra Datos Reales | ✅ Completada — drift detectado en marzo **resuelto** en esta sesión | 100% |
+| **6** | API REST | ✅ Completada (recableada al campeón v3) | 100% |
+| **6B** | Suite de Testing de Validación | ✅ Completada (390 tests, 100% verde) | 100% |
+| **7** | Tesis (main.tex) | 🔄 **En progreso** | ~95% |
+| **8** | **Integración LLM Local** | 🔄 **En progreso** | **~60%** |
 
 ### Resumen Ejecutivo
 
-**Modelo XGBoost v1 (original):**
+**⚠️ Sesión 2026-09-10/11 — actualización de modelo tras 5 meses sin tocar el proyecto.**
+Al revisar se encontró que el "modelo v2" documentado como productivo (Recall Glosada 0.8961)
+**nunca estuvo realmente cableado a la API** (`src/config.py::MODEL_PATH` seguía apuntando a v1),
+y que v2 era en realidad un modelo sub-ajustado (F1 cayó de 0.7490 a 0.7114) que heredaba el
+concept drift nunca resuelto (ver Fase 5B, hallazgo de marzo 2026: degradación OOT del 20.1% en
+F1, Glosada 40.2%→67.5%). Se ejecutó el ciclo completo de corrección: datos frescos → suite
+comparativa de modelos → selección de campeón → SHAP → API → dashboard → tesis.
+
+**Modelo XGBoost v1 (original, mar-2026):**
 - F1-macro: 0.7490 | AUC-ROC: 0.9078 | Recall Glosada: 0.7261
 - Dataset: 633K facturas (mar-2024 a jul-2025)
-- Features: 48 variables (28 originales + 13 log + 4 flags + 6 interacciones)
 
-**Modelo XGBoost v2 base (2026-04-13) — META SUPERADA:**
-- F1-macro: 0.7114 | AUC-ROC: 0.9028 | **Recall Glosada: 0.8961** ✅ (meta: ≥0.80)
-- Artifact: `models/artifacts/20260413_xgboost_v2_base.json`
-- Dataset enriquecido: `data/processed/20260309_{train|val|test}_enriched.parquet`
-- Campos textuales extraídos desde BD: `diagnostico_texto`, `cups_texto`, `observaciones`
-- Cobertura textual train: dx=90.1%, cups=90.1%, obs=63.5%
+**Modelo XGBoost v2 base (abr-2026) — nunca desplegado en la API pese a estar documentado:**
+- F1-macro: 0.7114 | AUC-ROC: 0.9028 | Recall Glosada: 0.8961 (modelo sub-ajustado, no una mejora real)
 
-**Integración LLM Local (Fase 8 - En Progreso):**
-- Objetivo original (Recall ≥0.80): **ALCANZADO** con modelo base v2
-- Tecnologías: Ollama + Sentence Transformers + spaCy (100% local, Ley 1581)
-- Progreso: ~8/16 tareas completadas (50%)
-- Componentes implementados: PrivacyGuard, EmbeddingService, LLMEvaluator, EmbeddingPipeline, ModelMonitor, ModelRegistry, RetrainingScheduler, DriftDetector
-- Tests: 380 tests pasando, cobertura 83.24%
-- Demo MVP: Interfaz gráfica con Streamlit (pendiente)
-- Spec: `.kiro/specs/local-llm-integration/` (design-first workflow)
+**Modelo LightGBM v3 (2026-09-10/11) — CAMPEÓN ACTUAL, desplegado en la API:**
+- Test (feb-mar 2026, n=79,803): F1-macro **0.7577** | AUC-ROC **0.9060** | **Recall Glosada 0.8635**
+- Out-of-Time (abr-may 2026, n=74,463): F1-macro **0.7243** | **Recall Glosada 0.8599** — degradación
+  relativa de solo **0.4%** (vs. 25.2% de la versión anterior en su propia validación OOT)
+- Dataset fresco: **1,084,637 facturas** (mar-2024 a may-2026) vía `scripts/extract_fresh_dataset.py`
+  (Auditada 19.5% / Glosada 66.1% / Devuelta 14.4% — confirma el drift: Glosada era 40% en 2024-2025)
+- Horizonte de etiquetas confiable: `scripts/check_label_horizon.py` — censura desde jun-2026
+  (tasa de glosa cae de ~13% a ~9-10%, devoluciones se desploman) → corte en 2026-06-01
+- Splits temporales: train 842,469 (mar24-nov25) · val 87,902 (dic25-ene26) · test 79,803 (feb-mar26)
+  · oot 74,463 (abr-may26) — `data/processed/20260910_{train,val,test,oot}.parquet`
+- Suite comparativa (`src/training/model_suite.py`, Optuna): xgb_v2_repro, XGBoost/LightGBM/CatBoost
+  afinados, TabM, AutoGluon (parcial — interrumpido por una suspensión del equipo antes de completar
+  todos los candidatos de `best_quality`; solo entrenó 3 de ~8-10 modelos base)
+- **TabPFN v2 excluido:** exige aceptar licencia del modelo vía login interactivo/HF (browser auth),
+  incompatible con ejecución automatizada y con el requisito 100% local (Ley 1581)
+- Campeón elegido por empate técnico en F1 (XGBoost afinado 0.7595 vs. LightGBM afinado 0.7577,
+  Δ=0.0018, dentro del margen de ruido) desempatado por Recall Glosada OOT — ver
+  `src/training/evaluation.py::select_champion` (regla de desempate documentada en código)
+- Artefacto: `models/artifacts/20260910_lgbm_tuned_champion.joblib` (+ `_metadata.json`)
+- Reportes: `reports/evaluations/20260910_model_suite.json`, `reports/20260910_model_suite_comparison.md`
+- Drift real medido (PSI, dataset viejo vs. fresco): `reports/20260911_drift_report.json` —
+  mean_psi=0.247 (alert), top features: `total_facturas_nit` (PSI=3.30), `tiene_fev` (1.38),
+  `dias_radicacion_promedio_nit` (0.94)
+- SHAP refrescado: `reports/evaluations/20260910_shap_importance.json` + 4 figuras
+  `reports/figures/shap_*_2026.png` — top-5 consistente con v1 (misma feature #1), confirma que
+  la mejora vino de datos/tuning, no de un cambio en la lógica de negocio
+- Modelo enriquecido con embeddings (`xgb_enriched`, Fase 8): en curso al cierre de esta sesión —
+  ver `reports/evaluations/20260910_model_suite_enriched.json` para el resultado final
 
-**API REST:**
-- 4 endpoints FastAPI (/health, /model/info, /predict, /predict/batch)
-- Explicabilidad SHAP integrada en tiempo real
-- Pydantic v2 schemas con 48 features
-- Dockerfile con healthcheck
+**Cableado a producción (esta sesión):**
+- `src/config.py`: `MODEL_PATH`, `FEATURE_LIST_PATH`, `MODEL_VERSION=v3`, `MODEL_DATE`,
+  `MODEL_ALGORITHM=LightGBM` (constante nueva), `MODEL_METRICS` — todos actualizados
+- `src/models/predict.py::load_model`: ahora soporta `.joblib` genérico además de XGBoost-JSON nativo
+  (detección por extensión) — necesario porque el campeón ya no es XGBoost
+- `src/training/retraining_scheduler.py`: piso de Recall Glosada por defecto corregido de 0.7261
+  (métrica de v1, heredada por error) a 0.80 (la meta operativa real del proyecto)
+- Dashboard (`web-next/`): Hero, Resultados (reenfocado en estabilidad OOT, no solo el número),
+  Drift (PSI y fechas reales), Solucion, Ventajas, Arquitectura, Explicabilidad (SHAP real), Nav,
+  Footer y meta de `layout.tsx` — todos actualizados; build verificado sin errores
+- Tesis (`main.tex`): resumen ES/EN, nueva sección de suite comparativa v3, métricas detalladas del
+  campeón, discusión (subsección de validación empírica del ciclo MLOps), conclusiones y
+  recomendaciones — actualizados
 
-**Testing Suite (completada y expandida):**
-- 380 tests en múltiples archivos (unit, integration, property, performance, security, regression, docker)
-- Cobertura: 83.24% (meta: 80%)
-- CI/CD: GitHub Actions con 3 jobs (unit, integration, coverage)
+**Testing Suite:**
+- 390 tests, **100% verde** tras esta sesión (2 aserciones obsoletas que esperaban "XGBoost"/.json
+  corregidas para leer de config en vez de hardcodear; 3 tests de embeddings que fallaban por faltar
+  el modelo spaCy `es_core_news_md` — instalado esta sesión, ahora pasan)
+
+### Hallazgos y pendientes para rotar
+
+- **Credenciales de BD hardcodeadas y commiteadas** en `notebooks/02_construccion_dataset.ipynb`,
+  `07_Validacion_Datos_Reales.ipynb` y `extraccion_xml_json.ipynb` (host `10.250.5.36`,
+  usuario/password en texto plano). El código nuevo (`src/db.py`, scripts de esta sesión) lee de
+  `Codigo/.env` (gitignored). **Recomendación:** limpiar los notebooks y rotar la contraseña —
+  no ejecutado en esta sesión, requiere decisión explícita del usuario.
+- `resultados_generados.tex` (raíz del repo) es un artefacto huérfano con valores placeholder
+  (nunca reales) que **no está `\input`eado en `main.tex`** — no afecta el PDF compilado. Si se
+  quiere mantener consistente, regenerar con `generar_resultados_latex.py` apuntando a los JSON
+  de `reports/evaluations/20260910_*.json`.
 
 ### Próximos Pasos
 
-1. **Fase 8 (Integración LLM Local):** Continuar implementación (50% completada)
-   - Implementar generador de explicaciones en lenguaje natural
-   - Integrar con API FastAPI manteniendo compatibilidad hacia atrás
-   - **Demo MVP:** Crear interfaz gráfica con Streamlit para demostración
-   - Spec completa disponible en `.kiro/specs/local-llm-integration/tasks.md`
-
-2. **Fase 7:** Pulir tesis main.tex (~10% restante)
-   - Revisar referencias cruzadas y bibliografía
-   - Verificar formato de tablas y figuras
-   - Revisión final de arquitectura AWS
-   - Actualizar resultados con modelo v2 (Recall Glosada 0.8961)
-
-3. **Fase 1D (opcional):** Parsers JSON RIPS + XML FEV para producción
+1. **Fase 8 (Integración LLM Local):** revisar resultado final de `xgb_enriched` y decidir si se
+   documenta como mejora adicional o como "no superó al campeón de 48 features" (ambos son
+   resultados válidos para la tesis). Pendiente: generador de explicaciones en lenguaje natural
+   con Ollama, demo MVP con Streamlit. Spec: `.kiro/specs/local-llm-integration/tasks.md`.
+2. **Fase 7:** confirmar compilación final de `main.tex` sin errores/warnings de referencias.
+3. **Rotar credenciales de BD** (ver arriba) — pendiente de decisión del usuario.
+4. **Publicar cambios:** commit + push a master (redespliega Vercel automáticamente) — pendiente
+   de confirmación del usuario.
+5. **Fase 1D (opcional):** Parsers JSON RIPS + XML FEV para producción.
 
 ---
 
