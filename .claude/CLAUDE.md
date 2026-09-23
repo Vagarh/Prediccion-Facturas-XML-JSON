@@ -137,6 +137,13 @@ comparativa de modelos → selección de campeón → SHAP → API → dashboard
 
 ### Próximos Pasos
 
+0. **(2026-09-23) Concepto del asesor (`Concepto_thesis_JuanFelipe.pdf`) aplicado en `main.tex`:**
+   nuevo título, sección 4.8 como revisión narrativa, Tabla 4.6 rehecha, 5 referencias
+   inexistentes/mal atribuidas eliminadas, bibliografía de 18 a 28 entradas verificadas, nueva
+   sección 11.5 (hallazgo + protocolo de citas). **Pendiente:** el autor debe completar
+   `auditoria_referencias.md` con la fuente en mano antes de la firma (O1 lo exige).
+   **Regla:** nunca agregar una referencia sin haberla localizado en la editorial o en un índice.
+
 1. **Fase 8 (Integración LLM Local):** revisar resultado final de `xgb_enriched` y decidir si se
    documenta como mejora adicional o como "no superó al campeón de 48 features" (ambos son
    resultados válidos para la tesis). Pendiente: generador de explicaciones en lenguaje natural

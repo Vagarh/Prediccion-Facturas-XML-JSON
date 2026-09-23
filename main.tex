@@ -1,8 +1,19 @@
 \documentclass[12pt,letterpaper]{report}
 
+% =====================================================================
+%  FORMATO: Plantilla para la elaboración de trabajos escritos 2024
+%  Centro Cultural Biblioteca Luis Echavarría Villegas — Universidad EAFIT
+%
+%  Este documento se compila con XeLaTeX (no pdfLaTeX), porque la
+%  plantilla exige Arial como fuente del cuerpo y fontspec necesita un
+%  motor Unicode para cargar la fuente real del sistema.
+%      Compilar con:  xelatex main.tex   (o python compile.py)
+% =====================================================================
+
 % --- Paquetes Necesarios ---
-\usepackage[utf8]{inputenc}
+% inputenc no se usa: XeLaTeX es Unicode de forma nativa.
 \usepackage[spanish, es-tabla]{babel}
+\usepackage{fontspec}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -21,7 +32,10 @@
 \usepackage{tcolorbox} % Para recuadros bonitos
 \usepackage{caption} % Para mejor manejo de leyendas
 \usepackage{subcaption} % Para subfiguras con \subcaption
-\usepackage{hyperref} % Para enlaces y marcadores
+% hidelinks: sin recuadros de color alrededor de referencias y entradas del
+% índice. Los marcadores del PDF siguen funcionando, pero el documento
+% impreso queda limpio, como exige un trabajo de grado.
+\usepackage[hidelinks]{hyperref}
 
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{shapes.geometric, shapes.symbols, arrows, positioning, babel, calc}
@@ -56,29 +70,100 @@
     arc=5pt
 }
 
-% --- Configuración de Página ---
-\geometry{left=3cm, right=2cm, top=3cm, bottom=2cm}
-\onehalfspacing % Interlineado de 1.5 (ajustar a doble si el resumen lo requiere estrictamente)
+% =====================================================================
+%  ESPECIFICACIÓN DE FORMATO EXIGIDA POR LA PLANTILLA INSTITUCIONAL
+%  (valores extraídos de Plantilla_elaboracion_trabajos_escritos_2024.docx)
+% =====================================================================
+
+% --- Página: carta, márgenes 4/2/3/3 cm ---
+% El margen izquierdo mayor (4 cm) reserva espacio para la encuadernación.
+\geometry{paper=letterpaper, left=4cm, right=2cm, top=3cm, bottom=3cm}
+
+% --- Tipografía: Arial 12 pt, interlineado 1,5, texto justificado ---
+\setmainfont{Arial}
+\setsansfont{Arial}
+\onehalfspacing
+
+% --- Títulos ---
+% Nivel 1 y 2 en mayúscula sostenida; del nivel 3 en adelante, altas y bajas.
+% Se conserva la numeración porque el documento usa referencias cruzadas
+% («véase la Sección 7.3»), que quedarían vacías con títulos sin numerar.
+\titleformat{\chapter}[hang]
+  {\normalfont\bfseries\large\filcenter}{\thechapter.}{1em}{\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{0pt}{3ex}
+\titleformat{name=\chapter,numberless}[hang]
+  {\normalfont\bfseries\large\filcenter}{}{0pt}{\MakeUppercase}
+
+\titleformat{\section}
+  {\normalfont\bfseries\normalsize}{\thesection}{1em}{\MakeUppercase}
+\titlespacing*{\section}{0pt}{2.5ex}{1ex}
+
+\titleformat{\subsection}
+  {\normalfont\bfseries\normalsize}{\thesubsection}{1em}{}
+\titlespacing*{\subsection}{0pt}{2ex}{0.8ex}
+
+\titleformat{\subsubsection}
+  {\normalfont\bfseries\normalsize}{\thesubsubsection}{1em}{}
+
+% --- Leyendas de figuras y tablas ---
+% La plantilla pide «Figura 1. Título», con punto tras el número y el
+% título en altas y bajas (babel-spanish trae dos puntos por defecto).
+\captionsetup{labelsep=period, font=small, labelfont=bf, justification=justified}
+\captionsetup[sub]{labelsep=period, font=footnotesize}
+
+% La plantilla acompaña cada figura con su fuente. Todas las figuras de este
+% trabajo son de elaboración propia; las tomadas de terceros llevan su cita.
+\newcommand{\fuentepropia}{%
+  \vspace{-0.4em}%
+  {\footnotesize Fuente: elaboración propia.}%
+}
 
 \begin{document}
 
 % --- PORTADA ---
+% Estructura y orden tomados de la plantilla institucional: logotipo,
+% título en español, título en inglés, autor, tipo de trabajo, asesor,
+% universidad y año. Es el único elemento obligatorio de la plantilla.
 \begin{titlepage}
     \centering
-    {\huge \textbf{Optimización de la Auditoría Prestacional en Savia Salud EPS: Modelo de Inteligencia de Negocio para la Predicción de Estados de Facturación basado en Estándares JSON y XML}} \\
+    \begin{spacing}{1.0}
+
+    \includegraphics[width=5.4cm]{figuras/logo_eafit.png}
+
+    \vspace{1.6cm}
+
+    {\large\bfseries\MakeUppercase{Modelo de inteligencia de negocio para la
+    predicción de estados de facturación en Savia Salud EPS basado en
+    estándares JSON y XML}}
+
+    \vspace{0.9cm}
+
+    {\normalsize\itshape A business intelligence model for predicting invoice
+    status at Savia Salud EPS based on JSON and XML standards}
+
     \vfill
-    {\large \textbf{Juan Felipe Cardona Arango }} \\
+
+    {\normalsize\bfseries Juan Felipe Cardona Arango}
+
+    \vspace{1.2cm}
+
+    {\normalsize Trabajo de grado presentado como requisito parcial para optar
+    al título de\\ Magíster en Ciencias de los Datos y la Analítica}
+
+    \vspace{1.2cm}
+
+    {\normalsize\bfseries Asesor}\\[0.3em]
+    {\normalsize Jorge Iván Padilla Buriticá}
+
     \vfill
-    Proyecto de Grado \\
-    \vfill
-    \textbf{Asesor:} \\
-    \relax {Jorge Ivan Padilla Buritica} \\
-    \vfill
-    UNIVERSIDAD EAFIT  \\
-    ESCUELA DE CIENCIAS APLICADAS E INGENIERÍA  \\
-    MAESTRÍA EN CIENCIAS DE LOS DATOS Y LA ANALÍTICA \\
-    MEDELLÍN \\
-    2026
+
+    {\normalsize UNIVERSIDAD EAFIT\\
+    ESCUELA DE CIENCIAS APLICADAS E INGENIERÍA\\
+    MAESTRÍA EN CIENCIAS DE LOS DATOS Y LA ANALÍTICA\\
+    MEDELLÍN\\
+    2026}
+
+    \end{spacing}
 \end{titlepage}
 
 \chapter*{Agradecimientos}
@@ -151,38 +236,66 @@ Agradezco a Savia Salud EPS por permitir el acceso a la información operativa n
 \chapter*{Resumen}
 \addcontentsline{toc}{chapter}{Resumen}
 \begin{spacing}{1.5}
-La transformación digital del Sistema General de Seguridad Social en Salud (SGSSS) de Colombia, materializada mediante la Resolución 2275 de 2023, ha generado un paradigma de interoperabilidad basado en el intercambio de datos estructurados en formatos JSON (Registros Individuales de Prestación de Servicios de Salud - RIPS) y XML (Factura Electrónica de Venta - FEV). Sin embargo, esta abundancia de información contrasta con una \textbf{asimetría crítica en la capacidad de procesamiento}: las Entidades Promotoras de Salud (EPS) reciben volúmenes masivos de datos granulares pero carecen de mecanismos predictivos para anticipar el resultado de la auditoría prestacional, generando incertidumbre financiera y cuellos de botella operativos que comprometen la sostenibilidad de la red prestadora.
+La Resolución 2275 de 2023 obligó al sistema de salud colombiano a intercambiar
+información en formatos estructurados JSON (RIPS) y XML (factura electrónica).
+Las Entidades Promotoras de Salud reciben así volúmenes masivos de datos, pero
+carecen de mecanismos para anticipar el resultado de la auditoría de cuentas
+médicas, lo que genera incertidumbre financiera y congestión operativa. Este
+trabajo aborda ese vacío en Savia Salud EPS, donde la auditoría opera de forma
+manual, reactiva y posterior al pago.
 
-El presente trabajo de grado aborda esta problemática en el caso específico de \textbf{Savia Salud EPS}, donde el proceso de auditoría médica y administrativa opera bajo un esquema reactivo, manual y \textit{ex-post}, incapaz de escalar con la creciente demanda transaccional. La pregunta de investigación orienta el desarrollo de una solución integradora: \textit{¿cómo aprovechar la riqueza informativa de los estándares FEV-RIPS para transformar la auditoría de un proceso transaccional a un modelo predictivo que reduzca la incertidumbre financiera?}
+Se desarrolló un modelo de inteligencia de negocio que clasifica cada factura,
+en el momento de su radicación, como Auditada, Glosada o Devuelta, empleando 48
+variables disponibles sin intervención humana. Siguiendo la metodología CRISP-DM
+adaptada al dominio sanitario, se extrajeron 1.084.637 facturas reales
+(marzo de 2024 a mayo de 2026), se aplicó división temporal estricta para evitar
+fuga de información y se compararon seis algoritmos con búsqueda de
+hiperparámetros mediante Optuna.
 
-Como respuesta, se diseñó e implementó un \textbf{modelo de inteligencia de negocio basado en analítica predictiva}, que utiliza algoritmos de aprendizaje supervisado (Random Forest, XGBoost y LightGBM) para la clasificación multiclase del estado final de las facturas (Auditada, Glosada o Devuelta). El modelo procesa de manera integrada 48 características extraídas de la cabecera de factura (\texttt{cm\_facturas}), el detalle de servicios (\texttt{cm\_detalles}) y el perfil histórico del prestador, todas disponibles sin intervención humana al momento de la radicación. La metodología CRISP-DM adaptada al dominio de salud guió el desarrollo, desde la comprensión del marco regulatorio y el mapeo de procesos mediante entrevistas con auditores, hasta la ingeniería de características y la validación del modelo con datos históricos de la organización.
+El modelo campeón, LightGBM, alcanzó un Recall de la clase Glosada de 0,8635 en
+el conjunto de prueba, superando la meta operativa de 0,80, y conservó 0,8599 en
+una validación posterior fuera de la ventana de entrenamiento: una degradación
+de apenas 0,4\%, frente al 25,2\% de la versión previa. El análisis SHAP atribuye
+la decisión a la complejidad administrativa, la complejidad clínica y el riesgo
+compuesto del prestador. El aporte principal es evidenciar que la sostenibilidad
+de estos modelos depende menos del algoritmo que de la vigencia de los datos, y
+proponer un ciclo de monitoreo y reentrenamiento validado empíricamente.
 
-Los resultados demuestran la viabilidad técnica de la propuesta, incluyendo un hallazgo metodológico relevante sobre su sostenibilidad en producción. Un primer modelo XGBoost (datos marzo 2024-julio 2025) alcanzó un \textbf{F1-Score Macro de 0.7490} y un \textbf{AUC-ROC (OvR) de 0.9078} sobre un conjunto de prueba de 40,193 facturas, pero con un \textbf{Recall de la clase Glosada de 0.7261}, por debajo de la meta operativa de 0.80; su validación temporal (Out-of-Time) sobre 223,621 facturas de agosto a diciembre de 2025 reveló además una degradación del 20.1\% en F1-Score, atribuida a una \textbf{deriva del concepto}: la proporción de facturas glosadas se incrementó del 40.2\% al 67.5\% respecto a la ventana de entrenamiento. Este hallazgo motivó un reentrenamiento con datos frescos (1,084,637 facturas radicadas entre marzo 2024 y mayo 2026) y una comparación sistemática de seis algoritmos con búsqueda de hiperparámetros vía Optuna (XGBoost, LightGBM, CatBoost, AutoML y un modelo tabular profundo). El modelo campeón resultante, \textbf{LightGBM}, alcanzó un \textbf{Recall de la clase Glosada de 0.8635} sobre el conjunto de prueba —superando la meta operativa— y, de forma crítica, \textbf{mantuvo 0.8599 dos meses después} en una nueva validación out-of-time: una degradación relativa de apenas 0.4\%, frente al 25.2\% observado en la versión anterior. El análisis de explicabilidad mediante SHAP identificó que las variables más determinantes son la complejidad administrativa (ítems con autorización previa), la complejidad clínica (diversidad diagnóstica) y el riesgo compuesto (valor de factura ponderado por la tasa histórica de glosa del prestador) —consistentes entre ambas versiones del modelo, confirmando que la mejora provino de datos actualizados y ajuste de hiperparámetros, no de un cambio en la lógica de negocio subyacente.
-
-Adicionalmente, se propone una \textbf{arquitectura técnica de integración} (pipeline ETL, API REST, feature store) que establece la hoja de ruta para la implementación operativa en una fase posterior.
-
-Este trabajo evidencia que la convergencia entre normativa sanitaria, ingeniería de datos e inteligencia artificial constituye una vía factible para la modernización de los procesos administrativos críticos en el sistema de salud colombiano, estableciendo bases metodológicas y técnicas replicables para el sector asegurador. La implementación en producción en Savia Salud EPS queda establecida como fase siguiente, sujeta a la aprobación de los comités de innovación y arquitectura empresarial de la organización.
-
-\textbf{Palabras clave:} Interoperabilidad en salud, Resolución 2275 de 2023, RIPS JSON, factura electrónica XML, auditoría prestacional, machine learning, clasificación multiclase, dinámica de sistemas, Savia Salud EPS, arquitectura de integración.
+\textbf{Palabras clave:} auditoría prestacional, interoperabilidad en salud,
+Resolución 2275 de 2023, aprendizaje automático, clasificación multiclase,
+deriva del concepto, explicabilidad, Savia Salud EPS.
 \end{spacing}
 
 \clearpage
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 \begin{spacing}{1.5}
-The digital transformation of Colombia's General Social Security Health System (SGSSS), enacted through Resolution 2275 of 2023, has established an interoperability paradigm based on structured data exchange in JSON (Individual Health Service Provision Records - RIPS) and XML (Electronic Sales Invoice - FEV) formats. However, this information abundance contrasts with a \textbf{critical asymmetry in processing capacity}: Health Promoting Entities (EPS) receive massive volumes of granular data but lack predictive mechanisms to anticipate the outcome of provider claims auditing, generating financial uncertainty and operational bottlenecks that compromise provider network sustainability.
+Resolution 2275 of 2023 required Colombia's health system to exchange
+information in structured JSON (RIPS) and XML (electronic invoice) formats.
+Health insurers therefore receive massive volumes of data, yet lack mechanisms
+to anticipate the outcome of medical claims auditing, which produces financial
+uncertainty and operational congestion. This work addresses that gap at Savia
+Salud EPS, where auditing is manual, reactive and carried out after payment.
 
-This thesis addresses this problem in the specific case of \textbf{Savia Salud EPS}, where the medical and administrative auditing process operates under a reactive, manual, and \textit{ex-post} scheme, unable to scale with increasing transactional demand. The research question guides the development of an integrated solution: \textit{how to leverage the informational richness of FEV-RIPS standards to transform auditing from a transactional process to a predictive model that reduces financial uncertainty?}
+A business intelligence model was developed to classify each invoice, at the
+moment it is filed, as Audited, Rejected or Returned, using 48 variables
+available without human intervention. Following a CRISP-DM methodology adapted
+to the health domain, 1,084,637 real invoices were extracted (March 2024 to
+May 2026), a strict temporal split was applied to prevent data leakage, and six
+algorithms were compared using Optuna hyperparameter search.
 
-As a response, a \textbf{business intelligence model based on predictive analytics} was designed and implemented, using supervised learning algorithms (Random Forest, XGBoost, and LightGBM) for multiclass classification of final invoice status (Audited, Rejected, or Returned). The model integrates 48 features extracted from the invoice header (\texttt{cm\_facturas}), service line items (\texttt{cm\_detalles}), and provider historical profiles, all available without human intervention at the time of filing. An adapted CRISP-DM methodology guided development, from regulatory framework understanding and process mapping through auditor interviews, to feature engineering and model validation with historical organizational data.
+The champion model, LightGBM, reached a Recall for the Rejected class of 0.8635
+on the test set, surpassing the 0.80 operational target, and retained 0.8599 in
+a later validation outside the training window: a degradation of just 0.4\%,
+against 25.2\% for the previous version. SHAP analysis attributes the decision
+to administrative complexity, clinical complexity and the provider's composite
+risk. The main contribution is evidence that the sustainability of such models
+depends less on the algorithm than on how current the data is, together with an
+empirically validated monitoring and retraining cycle.
 
-Results demonstrate the technical viability of the proposal, including a relevant methodological finding about its production sustainability. An initial XGBoost model (data from March 2024 to July 2025) achieved a \textbf{Macro F1-Score of 0.7490} and an \textbf{AUC-ROC (OvR) of 0.9078} on a test set of 40,193 invoices, but with a \textbf{Recall for the Rejected class of 0.7261}, below the 0.80 operational target; its Out-of-Time validation on 223,621 invoices from August to December 2025 further revealed a 20.1\% F1-Score degradation, attributed to \textbf{concept drift}: the proportion of rejected invoices increased from 40.2\% to 67.5\% relative to the training window. This finding prompted retraining on fresh data (1,084,637 invoices filed between March 2024 and May 2026) and a systematic comparison of six algorithms with Optuna hyperparameter search (XGBoost, LightGBM, CatBoost, AutoML, and a deep tabular model). The resulting champion model, \textbf{LightGBM}, achieved a \textbf{Recall for the Rejected class of 0.8635} on the test set — surpassing the operational target — and, critically, \textbf{maintained 0.8599 two months later} in a new out-of-time validation: a relative degradation of only 0.4\%, versus the 25.2\% observed in the previous version. SHAP explainability analysis identified administrative complexity (items requiring prior authorization), clinical complexity (diagnostic diversity), and composite risk (invoice value weighted by provider's historical rejection rate) as the most influential predictors — consistent across both model versions, confirming that the improvement came from updated data and hyperparameter tuning, not a change in the underlying business logic.
-
-Additionally, a \textbf{technical integration architecture} (ETL pipeline, REST API, feature store) is proposed, establishing the roadmap for operational implementation in a subsequent phase.
-
-This work evidences that the convergence between health regulation, data engineering, and artificial intelligence constitutes a viable pathway for modernizing critical administrative processes in Colombia's health system, establishing replicable methodological and technical foundations for the insurance sector. Production implementation at Savia Salud EPS is established as the next phase, subject to approval by the organization's innovation and enterprise architecture committees.
-
-\textbf{Keywords:} Health interoperability, Resolution 2275 of 2023, RIPS JSON, electronic invoicing XML, provider claims auditing, machine learning, multiclass classification, system dynamics, Savia Salud EPS, integration architecture.
+\textbf{Keywords:} claims auditing, health interoperability, Resolution 2275 of
+2023, machine learning, multiclass classification, concept drift,
+explainability, Savia Salud EPS.
 \end{spacing}
 
 \clearpage
@@ -194,9 +307,9 @@ En el caso de \textbf{Savia Salud EPS}, el procesamiento de estos grandes volúm
 
 El presente proyecto de grado surge como una respuesta estratégica a esta problemática, proponiendo la implementación de un modelo de \textit{Business Intelligence} y analítica predictiva. A diferencia de los métodos tradicionales de auditoría, esta propuesta utiliza algoritmos de aprendizaje supervisado para procesar de manera integrada los archivos \texttt{JSON} y \texttt{XML}, permitiendo anticipar el estado final de una factura antes de que agote los ciclos convencionales de revisión.
 
-Al centrarse en la predicción de estados como ``Auditada'', ``Glosada'' o ``Devuelta'', el modelo no solo busca optimizar la carga operativa de los auditores, sino también proporcionar a la dirección financiera de \textbf{Savia Salud EPS} una herramienta de decisión basada en datos reales y tendencias históricas. En última instancia, este trabajo demuestra cómo la convergencia entre la ingeniería biomédica y la inteligencia artificial puede transformar procesos administrativos críticos en activos estratégicos para el negocio de la salud.
+Al centrarse en la predicción de estados como ``Auditada'', ``Glosada'' o ``Devuelta'', el modelo no solo busca optimizar la carga operativa de los auditores, sino también proporcionar a la dirección financiera de \textbf{Savia Salud EPS} una herramienta de decisión basada en datos reales y tendencias históricas. El alcance del trabajo es el de un proyecto de ciencia de datos y analítica: construir, validar y documentar un clasificador sobre datos administrativos de la EPS, no intervenir en la práctica clínica.
 
-A lo largo de este documento, se detallará el marco normativo, la arquitectura técnica de la solución y la validación del modelo frente a la realidad operativa de la EPS, estableciendo una hoja de ruta para la modernización de la auditoría prestacional en la región.
+A lo largo de este documento se detallan el marco normativo, la arquitectura técnica de la solución y la validación del modelo frente a la realidad operativa de la EPS.
 
 \clearpage
 \chapter{Planteamiento del Problema}
@@ -211,7 +324,7 @@ El problema central radica en que el proceso de auditoría prestacional opera ba
     \item \textbf{Carga de Costo Administrativo:} El modelo actual depende de una validación manual intensiva que no escala con el volumen de operaciones de \textbf{Savia Salud EPS}, convirtiendo la auditoría en un cuello de botella para la liquidez de la red prestadora.
 \end{itemize}
 
-Desde una perspectiva de \textit{Business Intelligence}, el problema no es la falta de datos, sino la falta de capacidad predictiva sobre los mismos. La literatura en gestión prestacional indica que la aplicación de algoritmos de clasificación multiclase sobre datos de interoperabilidad puede transformar el proceso de un centro de costos manual a un centro de decisión automatizado \cite{breiman2001, chen2016xgboost}.
+Desde una perspectiva de \textit{Business Intelligence}, el problema no es la falta de datos, sino la falta de capacidad predictiva sobre los mismos. Existen antecedentes de modelos supervisados que anticipan, antes del pago, qué reclamaciones de salud requerirán reproceso o serán rechazadas por el pagador \cite{kumar2010claims, kim2020deepclaim}, y los algoritmos de ensambles de árboles \cite{breiman2001, chen2016xgboost} son el punto de partida habitual para este tipo de datos tabulares.
 
 Por lo tanto, se formula la siguiente pregunta de investigación: \textbf{¿Cómo integrar un modelo de inteligencia de negocio basado en analítica predictiva que, mediante el procesamiento de estándares \texttt{JSON} y \texttt{XML}, optimice la auditoría prestacional de Savia Salud EPS y reduzca la incertidumbre financiera en el ciclo de ingresos?}
 
@@ -221,11 +334,11 @@ La pertinencia de este proyecto se fundamenta en la necesidad crítica de \textb
 
 Desde una perspectiva \textbf{financiera y de negocio}, la implementación de este modelo predictivo permite reducir la incertidumbre asociada al ciclo de ingresos. Actualmente, la asimetría de información entre la radicación de archivos \texttt{JSON} y \texttt{XML} y el resultado final de la auditoría genera una ``cartera silenciosa'' que dificulta la proyección de las reservas técnicas. Al anticipar los estados de facturación, la organización puede optimizar su flujo de caja y mejorar la relación con la red prestadora al reducir los tiempos de disputa por glosas.
 
-En el ámbito \textbf{técnico y de innovación}, el proyecto aprovecha la obligatoriedad de la Resolución 2275 de 2023 para transformar un requisito legal en un activo estratégico. La utilización de técnicas de \textit{Machine Learning} para el análisis integrado de los estándares \texttt{JSON} (RIPS) y \texttt{XML} (Factura) representa un salto cualitativo desde el reporte tradicional hacia la analítica avanzada. Esto posiciona a \textbf{Savia Salud EPS} a la vanguardia tecnológica, demostrando que es posible automatizar la identificación de patrones de rechazo que hoy consumen cientos de horas de auditoría manual.
+En el ámbito \textbf{técnico y de innovación}, el proyecto aprovecha la obligatoriedad de la Resolución 2275 de 2023 para transformar un requisito legal en un activo estratégico. La utilización de técnicas de \textit{Machine Learning} para el análisis integrado de los estándares \texttt{JSON} (RIPS) y \texttt{XML} (Factura) permite pasar del reporte descriptivo a la predicción, y evaluar empíricamente si es posible automatizar la identificación de patrones de rechazo que hoy se detectan únicamente mediante auditoría manual.
 
 Finalmente, desde el punto de vista \textbf{operativo}, la solución propuesta ataca directamente el cuello de botella de la revisión de cuentas médicas. Al clasificar automáticamente las facturas con alta probabilidad de ser ``Auditadas'' o ``Glosadas'', el sistema permite que el talento humano se enfoque en casos de alta complejidad o sospecha de fraude, incrementando la productividad global y minimizando el error humano inherente al procesamiento masivo de datos transaccionales.
 
-En conclusión, este trabajo se justifica como una solución integral que alinea la ingeniería de datos con los objetivos estratégicos de la entidad, garantizando que la tecnología sea el motor de la eficiencia administrativa y la transparencia financiera en la prestación del servicio de salud.
+En síntesis, el trabajo se justifica porque aplica métodos de ciencia de datos a un problema operativo concreto de la entidad, con datos reales y una validación temporal que permite estimar su desempeño en condiciones de uso.
 
 \section{Objetivos}
 
@@ -258,7 +371,7 @@ La Resolución 2275 de 2023 representa un punto de inflexión en la historia de 
 \subsection{Interoperabilidad en Sistemas de Salud}
 
 \begin{definicion}[Interoperabilidad]
-La interoperabilidad, según la definición adoptada por la Organización Mundial de la Salud (OMS) y el Ministerio de Salud y Protección Social de Colombia, es la capacidad de diferentes sistemas de información, dispositivos y aplicaciones de acceder, intercambiar, integrar y utilizar datos de manera coordinada, dentro y entre organizaciones, para proporcionar una atención sanitaria oportuna y sin fricciones para los ciudadanos \cite{oms2019}.
+La interoperabilidad, según la definición propuesta en 2019 por la \textit{Healthcare Information and Management Systems Society} (HIMSS), es la capacidad de diferentes sistemas de información, dispositivos o aplicaciones de conectarse de manera coordinada, dentro y a través de las fronteras organizacionales, para acceder, intercambiar y usar cooperativamente datos entre los actores involucrados, con el objetivo de optimizar la salud de las personas y las poblaciones \cite{sullivan2019himss}.
 \end{definicion}
 
 \subsubsection{Niveles de Interoperabilidad}
@@ -300,7 +413,10 @@ ERP Financiero & Facturación y contabilidad & Generación de XML para DIAN \\
 El principio de ``verdad única'' (\textit{single source of truth}) constituye el núcleo filosófico de la Resolución 2275 de 2023. Este concepto, proveniente de la teoría de bases de datos distribuidas, implica que:
 
 \begin{equation}
-\forall x \in \text{Servicios de Salud}: \exists! \text{ RIPS}(x) \iff \exists! \text{ FEV}(x) \land \text{MUV}(\text{RIPS}(x), \text{FEV}(x)) = \text{CUV}
+\begin{split}
+\forall x \in \text{Servicios de Salud}: \quad &\exists!\,\text{RIPS}(x) \iff \exists!\,\text{FEV}(x) \\
+&\land\ \text{MUV}\bigl(\text{RIPS}(x), \text{FEV}(x)\bigr) = \text{CUV}
+\end{split}
 \end{equation}
 
 Donde:
@@ -418,6 +534,7 @@ La arquitectura definida por el Ministerio de Salud se fundamenta en un modelo d
 }
 \caption{Arquitectura de Dualidad Tecnológica FEV-RIPS}
 \label{fig:arquitectura_dual}
+\fuentepropia
 \end{figure}
 
 \subsection{El XML: Lenguaje de la Factura}
@@ -637,6 +754,7 @@ adopción progresiva del modelo FEV-RIPS. Los valores son estimaciones
 indicativas del rezago operativo declarado por el sector, no mediciones
 propias de este trabajo.}
 \label{fig:tiempo}
+\fuentepropia
 \end{figure}
 
 \subsection{Descentralización de la Información}
@@ -700,53 +818,59 @@ La implementación del modelo FEV-RIPS ha revelado retos significativos:
 %=============================================================================
 % CAPÍTULO 7: ANTECEDENTES DE ML EN AUDITORÍA DE SALUD
 %=============================================================================
-\section{Antecedentes de Machine Learning en Auditoría de Salud}
+\section{Antecedentes de Machine Learning en Auditoría de Salud: Revisión Narrativa}
+\label{sec:antecedentes_ml}
 
-El presente capítulo consolida la revisión sistemática de literatura sobre la aplicación de técnicas de aprendizaje automático en procesos de auditoría, control de calidad y detección de anomalías en el sector salud, contextualizando el estado del arte para el desarrollo del modelo propuesto.
+Esta sección presenta una \textbf{revisión narrativa} —no sistemática— de la literatura sobre aprendizaje automático aplicado a la auditoría, el control y la detección de anomalías en reclamaciones de salud. No se siguió un protocolo formal de revisión sistemática (por ejemplo, PRISMA) con cadenas de búsqueda registradas y criterios de inclusión y exclusión cuantificados. Las fuentes se identificaron en Google Scholar, PubMed, ACM Digital Library e IEEE Xplore a partir de términos como \textit{health insurance claims}, \textit{claims denial prediction}, \textit{healthcare fraud detection} y \textit{concept drift}, y se retuvieron las que (i) aplican modelos supervisados a reclamaciones o facturas de salud, o (ii) sintetizan ese campo en forma de revisión. Todas las referencias de esta sección se verificaron contra la publicación original, según el protocolo descrito en la Sección \ref{sec:hallazgo_citas}.
 
 \subsection{Detección de Fraude y Anomalías en Facturación Médica}
 
-La detección de fraude en reclamaciones de salud ha sido uno de los campos más estudiados en la aplicación de ML al sector asegurador. Según \cite{chan2022fraud}, los algoritmos de clasificación han demostrado ser efectivos en identificar patrones sospechosos en grandes volúmenes de transacciones médicas.
+La detección de fraude en reclamaciones de salud es el campo más estudiado de la aplicación de técnicas estadísticas y de ML al sector asegurador. \cite{li2008survey} y \cite{joudaki2015review} ofrecen revisiones tempranas que clasifican los métodos en supervisados y no supervisados, caracterizan las fuentes de datos disponibles y proponen pasos generales para la minería de reclamaciones. Más recientemente, \cite{dupreez2025fraud} publicaron una revisión sistemática de dos décadas de trabajos de ML sobre fraude en reclamaciones de seguros de salud. Buena parte de la evidencia empírica proviene de los datos públicos de Medicare en Estados Unidos \cite{herland2018bigdata, herland2020medicare}.
+
+La Tabla \ref{tab:antecedentes_fraude} resume los antecedentes utilizados. Se omite deliberadamente una columna de métricas de desempeño: los estudios usan datos, definiciones de la etiqueta y métricas distintas entre sí y respecto de este trabajo, por lo que una comparación numérica directa sería engañosa.
 
 \begin{table}[H]
 \centering
-\caption{Antecedentes de ML en detección de fraude en salud}
+\caption{Antecedentes de ML en reclamaciones y facturación de salud (fuentes verificadas)}
 \label{tab:antecedentes_fraude}
-\begin{tabular}{@{}p{3cm}p{4cm}p{4cm}p{2.5cm}@{}}
+\small
+\begin{tabular}{@{}p{2.8cm}p{3.6cm}p{3.6cm}p{4.3cm}@{}}
 \toprule
-\textbf{Autor/Año} & \textbf{Técnica} & \textbf{Aplicación} & \textbf{Resultado} \\
+\textbf{Autor/Año} & \textbf{Técnica} & \textbf{Aplicación} & \textbf{Relevancia para este trabajo} \\
 \midrule
-Brause et al. (1999) & Redes Neuronales & Detección de reclamaciones fraudulentas & 85\% precisión \\
-Ortega et al. (2016) & Random Forest & Clasificación de reclamaciones sospechosas & AUC 0.91 \\
-Sadiq et al. (2017) & SVM + Clustering & Identificación de outliers en facturación & 78\% recall \\
-Chan et al. (2022) & XGBoost + Deep Learning & Detección de fraude en tiempo real & F1 0.87 \\
+Li et al. (2008) \cite{li2008survey} & Revisión de métodos estadísticos & Detección de fraude en salud & Taxonomía de fuentes de datos y métodos \\
+Joudaki et al. (2015) \cite{joudaki2015review} & Revisión de minería de datos & Fraude y abuso en reclamaciones & Pasos generales para minería de reclamaciones \\
+Kumar et al. (2010) \cite{kumar2010claims} & Clasificación supervisada y aprendizaje activo & Predicción de reclamaciones que requerirán reproceso & Antecedente más cercano: predicción previa al pago, explicaciones para auditores y manejo de deriva \\
+Herland et al. (2018) \cite{herland2018bigdata} & Aprendizaje supervisado sobre varias fuentes Medicare & Fraude a nivel de prestador & Integración de múltiples fuentes de datos \\
+Kim et al. (2020) \cite{kim2020deepclaim} & Aprendizaje profundo & Predicción de la respuesta del pagador (denegación, tiempo y monto) & Formulación análoga a la predicción del estado de la factura \\
+du Preez et al. (2025) \cite{dupreez2025fraud} & Revisión sistemática & ML en fraude de reclamaciones de salud & Estado del arte reciente \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Clasificación Multiclase en Procesos Administrativos de Salud}
+\subsection{Predicción del Resultado de la Reclamación antes del Pago}
 
-La literatura específica sobre clasificación de estados de auditoría (aprobado, rechazado, devuelto) es más reciente. \cite{joshi2020claims} desarrollaron un modelo de predicción de aprobación de reclamaciones utilizando técnicas de ensemble learning, logrando una precisión del 82\% en un conjunto de datos de 500,000 reclamaciones de una aseguradora estadounidense.
+El problema de este trabajo —anticipar si una factura será auditada sin novedad, glosada o devuelta— está más cerca de la predicción de errores y rechazos en el procesamiento de reclamaciones que de la detección de fraude. \cite{kumar2010claims} describen un sistema que predice qué reclamaciones de seguros de salud deberán reprocesarse, genera explicaciones para que los auditores las corrijan e incorpora retroalimentación mediante aprendizaje activo; el trabajo discute además la deriva del concepto como un problema práctico del despliegue. \cite{kim2020deepclaim} abordan la predicción de la respuesta del pagador (si una reclamación será denegada, cuándo y por cuánto se pagará) a partir de cerca de 2,9 millones de reclamaciones desidentificadas de dos sistemas de salud de Estados Unidos.
 
-En el contexto latinoamericano, \cite{gonzalez2021auditoria} propusieron un framework de scoring de riesgo para auditoría prestacional en México, utilizando Regresión Logística y Random Forest para priorizar cuentas médicas según probabilidad de glosa.
+En la revisión realizada no se identificaron estudios publicados de este tipo sobre el sistema de salud colombiano ni, en general, latinoamericano.
 
 \subsection{Procesamiento de Datos Estructurados en Salud}
 
-El procesamiento de formatos estandarizados como HL7 FHIR (análogo a RIPS en el contexto colombiano) ha sido explorado por \cite{rajpurkar2022ai}, quienes demuestran que la integración de datos clínicos estructurados con variables financieras mejora significativamente el poder predictivo de los modelos de ML en aplicaciones administrativas de salud.
+El uso de formatos estandarizados de intercambio como insumo de modelos predictivos tiene un antecedente relevante en \cite{rajkomar2018ehr}, quienes representan el historial clínico electrónico completo en el formato HL7 FHIR —análogo, en su función de estándar de intercambio, al RIPS en Colombia— y muestran que un mismo modelo puede predecir varios desenlaces clínicos en distintos centros sin armonización de datos específica para cada uno. Ese trabajo se centra en desenlaces clínicos y no administrativos; se cita aquí como evidencia de que un estándar de interoperabilidad puede servir directamente como fuente de variables para aprendizaje automático. Una visión general del uso de IA en salud se encuentra en \cite{rajpurkar2022ai}.
 
 \subsection{Brecha de Conocimiento Identificada}
 
-A pesar de los antecedentes citados, existe una \textbf{brecha significativa} en la literatura:
+Con el alcance de la revisión narrativa descrita, se identificaron los siguientes vacíos:
 
 \begin{enumerate}
-    \item \textbf{Especificidad normativa:} No se han identificado estudios que aborden específicamente los estándares FEV-RIPS definidos en la Resolución 2275 de 2023.
-    
-    \item \textbf{Contexto colombiano:} La mayoría de estudios provienen de sistemas de salud de Estados Unidos o Europa, con arquitecturas de datos distintas al SGSSS colombiano.
-    
-    \item \textbf{Integración JSON-XML:} No existe literatura previa sobre modelos predictivos que integren simultáneamente datos clínicos en JSON y financieros en XML como propone este trabajo.
+    \item \textbf{Especificidad normativa:} no se identificaron estudios que aborden específicamente los estándares FEV-RIPS definidos en la Resolución 2275 de 2023.
+
+    \item \textbf{Contexto colombiano:} los estudios revisados provienen principalmente de Estados Unidos, con arquitecturas de datos y reglas de pago distintas a las del SGSSS colombiano.
+
+    \item \textbf{Integración JSON-XML:} no se encontraron trabajos publicados que construyan modelos predictivos a partir de la combinación de los datos de prestación del RIPS (JSON) y los datos de facturación de la FEV (XML).
 \end{enumerate}
 
-Esta brecha constituye la \textbf{contribución original} del presente proyecto de grado al campo del análisis de datos en salud.
+Dado que la revisión es narrativa y no sistemática, estos vacíos deben leerse como ``no identificados en la literatura consultada'' y no como una demostración de inexistencia. Dentro de esa salvedad, el aporte del presente trabajo es aplicar y validar temporalmente este tipo de modelos sobre datos reales bajo el marco FEV-RIPS.
 
 %=============================================================================
 % CONCLUSIONES DEL MARCO TEÓRICO
@@ -766,7 +890,7 @@ El marco teórico presentado establece que la Resolución 2275 de 2023 constituy
     
     \item El modelo habilita una nueva era de gobernanza del dato en salud pública, con potencial para transformar la planificación sanitaria territorial.
     
-    \item Existe evidencia internacional de la viabilidad de aplicar ML en auditoría de salud, pero el contexto colombiano con FEV-RIPS representa un campo inexplorado con potencial de contribución original.
+    \item Existe evidencia internacional, principalmente de Estados Unidos, sobre la viabilidad de aplicar ML a reclamaciones de salud; en la revisión narrativa realizada no se identificaron aplicaciones publicadas sobre el marco FEV-RIPS colombiano.
 \end{enumerate}
 
 % --- MARCO METODOLÓGICO, MATERIALES Y MÉTODOS ---
@@ -781,14 +905,17 @@ Dado que el objetivo central es desarrollar un modelo de inteligencia de negocio
 
 \section{Metodología CRISP-DM Adaptada}
 
-Para la gestión del proyecto de ciencia de datos, se adopta la metodología \textbf{CRISP-DM} (\textit{Cross-Industry Standard Process for Data Mining}), estándar de facto en proyectos de analítica predictiva. Sin embargo, dada la naturaleza regulatoria y operativa del dominio de salud en Colombia, se realiza una adaptación específica que incorpora fases de validación normativa y despliegue en producción.
+Para la gestión del proyecto de ciencia de datos, se adopta la metodología \textbf{CRISP-DM} (\textit{Cross-Industry Standard Process for Data Mining}) \cite{wirth2000crisp}, estándar de facto en proyectos de analítica predictiva. Sin embargo, dada la naturaleza regulatoria y operativa del dominio de salud en Colombia, se realiza una adaptación específica que incorpora fases de validación normativa y despliegue en producción.
 
+% Se escala por ALTURA, no por ancho: es un diagrama alto y estrecho, y
+% ajustarlo al ancho de texto lo hacía más alto que la caja de página, con lo
+% que el pie de figura se montaba sobre el número de página.
 \begin{figure}[H]
 \centering
-\resizebox{0.95\textwidth}{!}{
+\resizebox{!}{0.74\textheight}{
 \begin{tikzpicture}[
     node distance=1.2cm,
-    box/.style={rectangle, rounded corners, draw=minsalud, thick, fill=blue!10, 
+    box/.style={rectangle, rounded corners, draw=minsalud, thick, fill=blue!10,
                 minimum width=3.5cm, minimum height=1cm, align=center, font=\small\bfseries},
     arrow/.style={-stealth, thick, color=minsalud},
     phase/.style={rectangle, draw=accent, thick, fill=orange!10, 
@@ -830,6 +957,7 @@ Para la gestión del proyecto de ciencia de datos, se adopta la metodología \te
 }
 \caption{Fases de la metodología CRISP-DM adaptada al contexto de auditoría prestacional Savia Salud EPS}
 \label{fig:crispdm}
+\fuentepropia
 \end{figure}
 
 \subsection{Fase 1: Comprensión del Negocio}
@@ -879,6 +1007,7 @@ Los resultados del análisis exploratorio revelaron hallazgos clave para el dise
 \includegraphics[width=0.95\textwidth]{Codigo/reports/figures/eda_01_distribucion_clases.png}
 \caption{Distribución de clases en el dataset de entrenamiento (sub-muestreado) versus la base de datos real de Savia Salud EPS (4.5M facturas, últimos 24 meses).}
 \label{fig:eda_distribucion}
+\fuentepropia
 \end{figure}
 
 El análisis temporal (Figura \ref{fig:eda_serie_temporal}) reveló variaciones significativas en la proporción de glosas y devoluciones a lo largo del tiempo, un indicador temprano de la deriva del concepto que posteriormente se confirmó en la validación Out-of-Time.
@@ -888,6 +1017,7 @@ El análisis temporal (Figura \ref{fig:eda_serie_temporal}) reveló variaciones 
 \includegraphics[width=0.85\textwidth]{Codigo/reports/figures/eda_07_serie_temporal.png}
 \caption{Serie temporal de facturas por clase y tasas mensuales de glosas y devoluciones. Se observan variaciones estacionales que anticipan el concept drift documentado en la sección de resultados.}
 \label{fig:eda_serie_temporal}
+\fuentepropia
 \end{figure}
 
 \subsection{Fase 3: Preparación de Datos}
@@ -952,6 +1082,7 @@ Esta fase consume aproximadamente el 60-70\% del tiempo del proyecto y comprende
 \end{tikzpicture}
 \caption{Taxonomía de variables predictoras (features) del modelo}
 \label{fig:features}
+\fuentepropia
 \end{figure}
 
 El análisis de correlación de Spearman entre las 48 características finales y la variable objetivo (Figura \ref{fig:fe_correlaciones}) orientó la selección y validación de features, confirmando que variables como la tasa de devolución del prestador, la diversidad diagnóstica y los días hasta radicación presentan las correlaciones más significativas con el estado de auditoría.
@@ -961,6 +1092,7 @@ El análisis de correlación de Spearman entre las 48 características finales y
 \includegraphics[width=0.7\textwidth]{Codigo/reports/figures/fe_01_correlaciones_features.png}
 \caption{Correlación de Spearman entre las 48 características ingenierizadas y la variable objetivo. Las barras verdes indican correlación positiva (asociación con clases Glosada/Devuelta) y las rojas correlación negativa (asociación con clase Auditada).}
 \label{fig:fe_correlaciones}
+\fuentepropia
 \end{figure}
 
 \subsection{Fase 4: Modelado}
@@ -1060,6 +1192,7 @@ Donde $A$=Auditada, $G$=Glosada, $D$=Devuelta
 }
 \caption{Arquitectura de despliegue propuesta para producción}
 \label{fig:arquitectura_desp}
+\fuentepropia
 \end{figure}
 
 \subsection{Fase 6B: Validación del Sistema de Predicción}
@@ -1155,7 +1288,8 @@ Esta suite de pruebas garantiza que cada nueva versión del modelo o del código
 \begin{table}[H]
 \centering
 \caption{Stack tecnológico del proyecto}
-\begin{tabular}{@{}llp{6cm}@{}}
+\small
+\begin{tabular}{@{}llp{5.4cm}@{}}
 \toprule
 \textbf{Categoría} & \textbf{Herramienta} & \textbf{Propósito} \\
 \midrule
@@ -1257,6 +1391,7 @@ La arquitectura de producción se diseñó bajo un paradigma \textit{serverless}
 }
 \caption{Arquitectura cloud propuesta en AWS: flujo de inferencia en tiempo real (arriba) y procesamiento batch diario (abajo), con monitoreo centralizado en CloudWatch.}
 \label{fig:arq_aws}
+\fuentepropia
 \end{figure}
 
 \subsubsection{Flujo de Inferencia en Tiempo Real}
@@ -1357,7 +1492,11 @@ El análisis de validación Out-of-Time (§\ref{subsec:oot_results}) reveló una
     \item \textbf{Dataset histórico:} 16 meses de operaciones de Savia Salud EPS (marzo 2024 a julio 2025), resultando en 633,181 facturas tras el tratamiento de sesgos de censura
     \item \textbf{Partición temporal:} 515,145 registros para entrenamiento (mar 2024 -- abr 2025), 77,843 para validación (may 2025) y 40,193 para prueba (jun--jul 2025)
     \item \textbf{Validación Out-of-Time (OOT):} 223,621 facturas de agosto a diciembre de 2025, utilizadas para evaluar la estabilidad temporal del modelo
-    \item \textbf{Variable objetivo:} Construida a partir de JOINs a las tablas \texttt{cm\_auditoria\_\idb devoluciones} (clase Devuelta), \texttt{cm\_auditoria\_\idb motivos\_\idb glosas} vía \texttt{cm\_detalles} (clase Glosada) y ausencia de ambas (clase Auditada), con prioridad Devuelta $>$ Glosada $>$ Auditada
+    \item \textbf{Variable objetivo:} Construida a partir de JOINs a las tablas
+    \texttt{cm\_\idb auditoria\_\idb devoluciones} (clase Devuelta),
+    \texttt{cm\_\idb auditoria\_\idb motivos\_\idb glosas} vía \texttt{cm\_\idb detalles}
+    (clase Glosada) y ausencia de ambas (clase Auditada), con prioridad
+    Devuelta $>$ Glosada $>$ Auditada
     \item \textbf{Distribución de clases (test):} Auditada 34.1\%, Glosada 40.2\%, Devuelta 25.7\%
     \item \textbf{Ingeniería de características:} 48 features extraídas de cabecera de factura (16), detalle de servicios (21) y perfil histórico del prestador (11)
 \end{itemize}
@@ -1486,9 +1625,11 @@ Auxiliar de Radicación & Recepción y clasificación inicial & ``Muchas factura
 \node[decision] (estado) at (5.0,-5.4) {¿Estado?};
 % Separación amplia en el abanico de salida: las etiquetas de arista
 % ('Rechazo parcial', etc.) son más anchas que el tramo de flecha original.
-\node[process]  (ok)     at (10.2,-4.0){Auditada OK};
-\node[process]  (glosa)  at (10.2,-5.4){Glosada};
-\node[process]  (dev)    at (10.2,-6.8){Devuelta};
+% x=11.6: con Arial las etiquetas de arista ('Rechazo parcial') son más anchas
+% que con la fuente anterior y tocaban las cajas a 10.2.
+\node[process]  (ok)     at (11.6,-4.0){Auditada OK};
+\node[process]  (glosa)  at (11.6,-5.4){Glosada};
+\node[process]  (dev)    at (11.6,-6.8){Devuelta};
 
 % Flechas — fila 1
 \draw[arrow] (rad) -- (cola);
@@ -1519,6 +1660,7 @@ Auxiliar de Radicación & Recepción y clasificación inicial & ``Muchas factura
 }
 \caption{Proceso actual (As-Is) de auditoría prestacional Savia Salud EPS}
 \label{fig:proceso_actual}
+\fuentepropia
 \end{figure}
 
 \section{Modelo de Dinámica de Sistemas: El Cuello de Botella de Auditoría}
@@ -1570,6 +1712,7 @@ Para comprender el comportamiento del sistema de auditoría en el tiempo y cuant
 }
 \caption{Diagrama causal del sistema de auditoría prestacional}
 \label{fig:diagrama_causal}
+\fuentepropia
 \end{figure}
 
 \subsection{Diagrama de Forrester (Niveles y Flujos)}
@@ -1617,6 +1760,7 @@ Para comprender el comportamiento del sistema de auditoría en el tiempo y cuant
 }
 \caption{Diagrama de Forrester: Stocks y flujos del sistema de auditoría}
 \label{fig:forrester}
+\fuentepropia
 \end{figure}
 
 \subsection{Modelo Matemático del Rezago}
@@ -1697,6 +1841,7 @@ R(t) = \int_{0}^{t} \max\left(0, \lambda_R(\tau) - \lambda_A(\tau)\right) d\tau
 }
 \caption{Comportamiento del sistema: Acumulación de facturas pendientes en escenario actual vs. modelo predictivo}
 \label{fig:simulacion}
+\fuentepropia
 \end{figure}
 
 \subsubsection{Interpretación de la Simulación}
@@ -1792,6 +1937,7 @@ Tiempo de ciclo de pago (promedio) & 23 días & 15 días & 35\% \\
 }
 \caption{Proceso propuesto (To-Be) con integración de modelo predictivo}
 \label{fig:proceso_futuro}
+\fuentepropia
 \end{figure}
 
 \subsection{Matriz de Asignación de Recursos}
@@ -1799,7 +1945,7 @@ Tiempo de ciclo de pago (promedio) & 23 días & 15 días & 35\% \\
 \begin{table}[H]
 \centering
 \caption{Redistribución de carga de trabajo con modelo predictivo}
-\small
+\footnotesize
 \begin{tabular}{@{}lccc@{}}
 \toprule
 \textbf{Tipo de Auditoría} & \textbf{\% Casos} & \textbf{Recurso} & \textbf{Tiempo Promedio} \\
@@ -1863,7 +2009,7 @@ En esta fase inicial, el modelo \textbf{XGBoost demostró el mejor desempeño gl
 
 \subsection{Reentrenamiento con Datos Frescos y Suite Comparativa de Modelos (v3)}
 \label{subsec:suite_v3}
-Ante el hallazgo de deriva del concepto (Sección \ref{subsec:oot_results}), se extrajo un dataset fresco de \textbf{1,084,637 facturas} radicadas entre marzo de 2024 y mayo de 2026 —incorporando la totalidad del período que antes se usaba solo para validación Out-of-Time— y se re-derivó el mismo vector de 48 características mediante el pipeline de ingeniería de variables descrito en el Marco Metodológico (log-transformaciones, flags binarios e interacciones). Sobre este dataset se entrenó y evaluó una suite comparativa de seis modelos, todos bajo división temporal estricta (entrenamiento marzo 2024-noviembre 2025, validación diciembre 2025-enero 2026, prueba febrero-marzo 2026, Out-of-Time abril-mayo 2026) y búsqueda de hiperparámetros con Optuna donde aplica: el propio XGBoost v2 reproducido sobre datos frescos (referencia), XGBoost, LightGBM y CatBoost afinados, un modelo tabular profundo (TabM) y AutoGluon (AutoML). La Tabla \ref{tab:suite_v3} resume los resultados.
+Ante el hallazgo de deriva del concepto (Sección \ref{subsec:oot_results}), se extrajo un dataset fresco de \textbf{1,084,637 facturas} radicadas entre marzo de 2024 y mayo de 2026 —incorporando la totalidad del período que antes se usaba solo para validación Out-of-Time— y se re-derivó el mismo vector de 48 características mediante el pipeline de ingeniería de variables descrito en el Marco Metodológico (log-transformaciones, flags binarios e interacciones). Sobre este dataset se entrenó y evaluó una suite comparativa de seis modelos, todos bajo división temporal estricta (entrenamiento marzo 2024-noviembre 2025, validación diciembre 2025-enero 2026, prueba febrero-marzo 2026, Out-of-Time abril-mayo 2026) y búsqueda de hiperparámetros con Optuna \cite{akiba2019optuna} donde aplica: el propio XGBoost v2 reproducido sobre datos frescos (referencia), XGBoost \cite{chen2016xgboost}, LightGBM \cite{ke2017lightgbm} y CatBoost afinados, un modelo tabular profundo (TabM) y AutoGluon (AutoML). La Tabla \ref{tab:suite_v3} resume los resultados.
 
 \begin{table}[H]
 \centering
@@ -1896,6 +2042,7 @@ La importancia de variables por ganancia (Figura \ref{fig:feature_importance_gai
 \includegraphics[width=0.95\textwidth]{Codigo/reports/figures/mt_02_feature_importance.png}
 \caption{Top 20 variables más importantes por ganancia para XGBoost y LightGBM. La diversidad diagnóstica (\texttt{num\_dx\_distintos}) domina en XGBoost, mientras que LightGBM distribuye la importancia entre variables temporales y financieras.}
 \label{fig:feature_importance_gain}
+\fuentepropia
 \end{figure}
 
 Dado que la clase Glosada representa el mayor impacto financiero, se analizó la curva Precision-Recall específica para esta clase (Figura \ref{fig:pr_curve_glosada}). Los tres modelos alcanzaron una Average Precision (AP) superior a 0.86, indicando una capacidad robusta de identificación de facturas con riesgo de glosa.
@@ -1905,6 +2052,7 @@ Dado que la clase Glosada representa el mayor impacto financiero, se analizó la
 \includegraphics[width=0.95\textwidth]{Codigo/reports/figures/mt_03_precision_recall_glosada.png}
 \caption{Curvas Precision-Recall para la clase Glosada. La línea punteada indica la meta de Recall $\geq$ 0.80. Los tres modelos alcanzan AP $>$ 0.86, pero ninguno supera la meta de Recall al umbral por defecto, indicando potencial de optimización mediante ajuste de umbral.}
 \label{fig:pr_curve_glosada}
+\fuentepropia
 \end{figure}
 
 \subsection{Métricas Detalladas del Modelo Inicial (XGBoost v1)}
@@ -1964,6 +2112,7 @@ La matriz de confusión (Figura \ref{fig:matriz_confusion}) permite visualizar l
 \includegraphics[width=0.8\textwidth]{Codigo/reports/figures/mt_01_confusion_matrices.png}
 \caption{Matriz de confusión normalizada por clase para el modelo XGBoost en el conjunto de prueba. Las filas representan la clase real y las columnas la clase predicha.}
 \label{fig:matriz_confusion}
+\fuentepropia
 \end{figure}
 
 El error más crítico, un Falso Negativo de Glosa (una factura Glosada clasificada erróneamente como Auditada), ocurre en un 17.8\% de los casos de glosa. Este es el principal punto a optimizar, dado que las facturas glosadas tienen un valor promedio 10.5 veces superior al de las auditadas.
@@ -2017,6 +2166,7 @@ La Figura \ref{fig:val_oot} muestra la matriz de confusión del modelo en el per
 \includegraphics[width=0.95\textwidth]{Codigo/reports/figures/val_03_oot_confusion_estabilidad.png}
 \caption{Izquierda: Matriz de confusión del modelo XGBoost en el período Out-of-Time (ago-dic 2025, n=223,621). Derecha: Comparación de F1-Score por clase entre Test y OOT, evidenciando la degradación por concept drift.}
 \label{fig:val_oot}
+\fuentepropia
 \end{figure}
 
 %---------------------------------------------------
@@ -2024,7 +2174,7 @@ La Figura \ref{fig:val_oot} muestra la matriz de confusión del modelo en el per
 %---------------------------------------------------
 \section{Explicabilidad del Modelo (XAI): Importancia de Variables}
 Para comprender los factores que impulsan las predicciones del modelo, se utilizó el
-algoritmo SHAP (SHapley Additive exPlanations). El análisis se presenta en dos partes:
+algoritmo SHAP (SHapley Additive exPlanations) \cite{lundberg2017shap}. El análisis se presenta en dos partes:
 primero el del modelo inicial XGBoost v1, sobre el que se construyó la interpretación de
 negocio original; después el del modelo campeón LightGBM v3 efectivamente desplegado
 (Sección \ref{subsec:shap_v3}), que permite verificar si la actualización con datos
@@ -2039,6 +2189,7 @@ identifica las variables más influyentes en la decisión del modelo.
 \includegraphics[width=0.9\textwidth]{Codigo/reports/figures/shap_01_importancia_global.png}
 \caption{Importancia de variables según el valor SHAP promedio. Muestra las 20 características con mayor impacto agregado en las predicciones del modelo XGBoost v1.}
 \label{fig:feature_importance}
+\fuentepropia
 \end{figure}
 
 Las cinco características más determinantes para el modelo fueron:
@@ -2077,6 +2228,7 @@ Tabla \ref{tab:top_features_v3} presentan el resultado.
 \caption{Importancia global de variables según el valor SHAP promedio para el modelo
 campeón LightGBM v3, calculada sobre el conjunto de prueba fresco (febrero--marzo 2026).}
 \label{fig:feature_importance_v3}
+\fuentepropia
 \end{figure}
 
 \begin{table}[H]
@@ -2115,13 +2267,13 @@ Sección \ref{subsec:oot_results}: el problema no era el algoritmo, era la antig
 los datos.
 
 Por clase, la descomposición del v3 muestra patrones diferenciados consistentes con la
-interpretación de negocio: en \textbf{Auditada} domina \texttt{log\_num\_dx\_distintos}
+interpretación de negocio: en \textbf{Auditada} domina \texttt{log\_num\_dx\_\idb distintos}
 (0.3043), es decir, la complejidad clínica legítima; en \textbf{Glosada} domina
-\texttt{log\_num\_items\_con\_autorizacion} (0.2758) seguida muy de cerca por la
+\texttt{log\_num\_items\_\idb con\_\idb autorizacion} (0.2758) seguida muy de cerca por la
 complejidad diagnóstica y el riesgo compuesto; y en \textbf{Devuelta} la señal es mucho
-más concentrada — \texttt{log\_num\_items\_con\_autorizacion} alcanza 0.8220, casi el
-triple que en las otras clases—, lo que refleja que las devoluciones responden a
-defectos de forma identificables de manera casi determinista.
+más concentrada —\,esa misma variable alcanza 0.8220, casi el triple que en las otras
+clases\,—, lo que refleja que las devoluciones responden a defectos de forma
+identificables de manera casi determinista.
 
 \subsection{Análisis SHAP por Clase}
 
@@ -2154,6 +2306,7 @@ las tres clases, revelando patrones diferenciados. Por ejemplo, un valor alto de
 \end{minipage}
 \caption{SHAP beeswarm plots por clase. Cada punto representa una factura; el color indica el valor de la feature (rojo = alto, azul = bajo). La posición horizontal muestra el impacto SHAP sobre la probabilidad de cada clase.}
 \label{fig:shap_beeswarm}
+\fuentepropia
 \end{figure}
 
 El análisis de dependencia para la clase Glosada (Figura \ref{fig:shap_dependence}) muestra las relaciones no lineales entre las cuatro variables más influyentes y su contribución SHAP. Se observa, por ejemplo, que el riesgo compuesto (\texttt{log\_valor\_x\_tasa\_glosa}) presenta un efecto umbral: valores bajos contribuyen negativamente (reducen probabilidad de glosa), pero a partir de un umbral, la contribución se vuelve fuertemente positiva.
@@ -2163,6 +2316,7 @@ El análisis de dependencia para la clase Glosada (Figura \ref{fig:shap_dependen
 \includegraphics[width=0.85\textwidth]{Codigo/reports/figures/shap_04_dependence_glosada.png}
 \caption{Dependence plots SHAP para las top 4 features de la clase Glosada. Cada punto es una factura; el eje Y muestra la contribución SHAP a la probabilidad de glosa. Se observan relaciones no lineales y efectos umbral.}
 \label{fig:shap_dependence}
+\fuentepropia
 \end{figure}
 
 \subsection{Análisis de Casos Individuales con SHAP}
@@ -2177,7 +2331,7 @@ El modelo puede generar un informe detallado de los factores que impulsaron la d
 
     \item \textbf{Para una factura predicha como Devuelta}, la justificación podría ser:
     \begin{quote}
-    ``La predicción de Devuelta (confianza del 100\%) fue determinada por: 1) la ausencia total de diagnósticos (\texttt{log\_num\_dx\_distintos} = 0) y 2) la ausencia de ítems con autorización (\texttt{log\_num\_items\_con\_autorizacion} = 0). Esto indica una alta probabilidad de que la factura carezca de la información de soporte mínima requerida, constituyendo un error de forma.''
+    ``La predicción de Devuelta (confianza del 100\%) fue determinada por: 1) la ausencia total de diagnósticos (\texttt{log\_num\_dx\_\idb distintos} = 0) y 2) la ausencia de ítems con autorización (\texttt{log\_num\_items\_\idb con\_\idb autorizacion} = 0). Esto indica una alta probabilidad de que la factura carezca de la información de soporte mínima requerida, constituyendo un error de forma.''
     \end{quote}
 \end{itemize}
 
@@ -2205,6 +2359,7 @@ La Figura \ref{fig:shap_waterfall} muestra un ejemplo real de estas explicacione
 \end{minipage}
 \caption{Waterfall plots SHAP para tres facturas representativas (una por clase). Cada barra muestra la contribución de una feature a la probabilidad de la clase predicha, partiendo del valor base $E[f(X)]$. Las barras rojas empujan hacia la clase predicha; las azules empujan en contra.}
 \label{fig:shap_waterfall}
+\fuentepropia
 \end{figure}
 
 Esta capacidad de explicación individual es la que permite transformar el proceso de auditoría, guiando al auditor humano para que centre su atención en los puntos de mayor riesgo de forma inmediata y precisa.
@@ -2250,7 +2405,7 @@ El hallazgo más significativo del proyecto no proviene del conjunto de prueba s
 
 La causa raíz identificada es un \textbf{concept drift} en la distribución de la variable objetivo: la proporción de facturas Glosadas se duplicó del 40.2\% al 67.5\% en el período OOT, mientras que las Devoluciones cayeron del 25.7\% al 9.7\%. Este cambio en la distribución de clases invalida parcialmente los umbrales de decisión aprendidos durante el entrenamiento, haciendo que el modelo subestime la clase Glosada y sobreestime la clase Auditada.
 
-Este fenómeno es consistente con la literatura sobre detección de fraude y auditoría en sistemas de salud. \cite{chan2022fraud} documentan degradaciones similares en modelos de detección de fraude en healthcare cuando la distribución de actividades fraudulentas cambia tras un período de monitoreo intensivo. \cite{joshi2020claims} señalan que los modelos de predicción de auditoría de pólizas de seguro pierden entre un 15\% y un 30\% de su rendimiento en ventanas de 3 a 6 meses sin reentrenamiento. En el caso de Savia Salud EPS, el salto observado en la tasa de glosas en el segundo semestre de 2025 puede estar relacionado con cambios en el comportamiento de radicación de los prestadores tras la entrada en vigor de requisitos adicionales de la Circular 007 de 2025.
+Este fenómeno corresponde a lo que la literatura denomina deriva del concepto (\textit{concept drift}): un cambio en la relación entre las variables de entrada y la variable objetivo a lo largo del tiempo, que degrada a los modelos entrenados sobre la distribución anterior y exige estrategias explícitas de detección y adaptación \cite{gama2014survey, lu2019drift}. En el dominio específico de las reclamaciones de salud, \cite{kumar2010claims} señalan la deriva como uno de los problemas prácticos del despliegue de su sistema de predicción de reprocesos. Las magnitudes de degradación reportadas en este capítulo (20.1\% en F1-Score Macro y 25.2\% en Recall de Glosada) son mediciones propias sobre los datos de Savia Salud EPS y no se contrastan con cifras de otros estudios, porque la magnitud de la deriva depende del dominio, de la ventana temporal y de la causa del cambio. En el caso de Savia Salud EPS, el salto observado en la tasa de glosas en el segundo semestre de 2025 puede estar relacionado con cambios en el comportamiento de radicación de los prestadores tras la entrada en vigor de requisitos adicionales de la Circular 007 de 2025.
 
 Es importante destacar que el concept drift \textbf{no invalida el enfoque}: confirma, en cambio, que los modelos de ML en auditoría prestacional son artefactos vivos que requieren mantenimiento continuo. Un modelo con F1=0.75 que se reentrena trimestralmente con datos frescos es considerablemente más valioso que un modelo con F1=0.80 que se degrada a F1=0.59 en cinco meses sin intervención.
 
@@ -2265,7 +2420,7 @@ Los hallazgos sobre concept drift tienen implicaciones directas para la arquitec
 
     \item \textbf{SageMaker (reentrenamiento):} El costo de un ciclo de reentrenamiento trimestral en instancias spot (\textasciitilde\$15 USD) es insignificante frente al costo de operar con un modelo degradado (F1=0.59), que en términos prácticos significa que el 46\% de las facturas Glosadas no son identificadas correctamente. Con el Recall de Glosada observado en OOT (0.539) y un promedio de 16,143 facturas glosadas en el período de prueba, el modelo degradado fallaría en identificar aproximadamente 7,432 facturas adicionales por período.
 
-    \item \textbf{Suite de regression tests como guardián de calidad:} Cada ciclo de reentrenamiento debe culminar con la ejecución automatizada de las pruebas de regresión del modelo (\texttt{test\_model\_regression.py}), que verifican umbrales mínimos sobre un dataset estático. Solo si el nuevo modelo supera estas pruebas debería promoverse a producción. Este patrón —denominado \textit{model validation gate}— es una práctica estándar en MLOps \cite{rajpurkar2022ai} que el pipeline propuesto implementa explícitamente.
+    \item \textbf{Suite de regression tests como guardián de calidad:} Cada ciclo de reentrenamiento debe culminar con la ejecución automatizada de las pruebas de regresión del modelo (\texttt{test\_model\_regression.py}), que verifican umbrales mínimos sobre un dataset estático. Solo si el nuevo modelo supera estas pruebas debería promoverse a producción. Este patrón —aquí denominado \textit{model validation gate}— sigue la recomendación de verificar la calidad de cada nuevo modelo con pruebas automatizadas antes de servirlo en producción \cite{breck2017mltest}, y el pipeline propuesto lo implementa explícitamente.
 \end{itemize}
 
 En síntesis, el pipeline de producción robusto para este sistema adopta el siguiente flujo cíclico:
@@ -2314,7 +2469,7 @@ Los resultados de este trabajo deben interpretarse considerando las siguientes l
 
     \item \textbf{Disponibilidad de datos para predicción inmediata:} Se verificó que las 48 características utilizadas por el modelo provienen de fuentes disponibles al momento de la radicación: cabecera de factura (16 features), detalle de servicios del XML/JSON (21 features) y perfil histórico del prestador pre-calculado (11 features). Ninguna requiere que un auditor haya revisado la factura, habilitando el triaje automático.
 
-    \item \textbf{Contribución original al campo:} Este trabajo aborda una brecha de conocimiento específica al aplicar técnicas de ML a los estándares FEV-RIPS del sistema de salud colombiano, siendo el primer estudio que integra variables clínicas y financieras de estos estándares para clasificación multiclase de estados de auditoría.
+    \item \textbf{Aporte al campo:} Este trabajo aplica técnicas de ML a datos derivados de los estándares FEV-RIPS del sistema de salud colombiano, combinando variables de prestación y de facturación para la clasificación multiclase de estados de auditoría y validándola con partición temporal estricta. En la revisión narrativa realizada (Sección \ref{sec:antecedentes_ml}) no se identificaron trabajos publicados con este mismo enfoque; dado que dicha revisión no fue sistemática, el aporte se presenta como una aplicación sobre un contexto poco documentado y no como una reclamación de primacía.
 
     \item \textbf{Viabilidad operativa validada por software:} La construcción de una suite de 396 pruebas automatizadas —incluyendo pruebas unitarias, de integración, de propiedades (Hypothesis), rendimiento, seguridad y regresión del modelo— con 87.8\% de cobertura sobre los módulos de la ruta de producción confirma que el sistema es operable y desplegable. Esta fase, no contemplada en el diseño metodológico original, emergió como requisito al transitar de prototipos en notebooks a código estructurado, evidenciando que la viabilidad de un sistema de ML en salud se demuestra no solo mediante métricas estadísticas del modelo sino mediante la robustez verificable de su implementación de software.
 \end{enumerate}
@@ -2393,10 +2548,13 @@ septiembre de 2026, \textbf{20 incluyen la línea de coautoría} \texttt{Co-Auth
 Claude}, correspondiente a las versiones de modelo Sonnet 4.6 (13), Sonnet 5 (6) y
 Opus 4.6 (1). Los 11 restantes corresponden a trabajo sin asistencia.
 
-No se emplearon herramientas de generación de texto para producir datos, resultados
-experimentales ni referencias bibliográficas. La totalidad de las cifras reportadas en
-el Capítulo de Resultados proviene de la ejecución de código sobre la base de datos
-operativa de Savia Salud EPS.
+No se emplearon herramientas de generación de texto para producir datos ni resultados
+experimentales: la totalidad de las cifras reportadas en el Capítulo de Resultados
+proviene de la ejecución de código sobre la base de datos operativa de Savia Salud EPS.
+En cuanto a las referencias bibliográficas, la revisión del asesor sobre la versión
+previa de este documento detectó citas que no correspondían a su fuente; el hallazgo,
+su corrección y el protocolo adoptado se describen en la
+Sección \ref{sec:hallazgo_citas}.
 
 \section{Distribución de responsabilidades}
 
@@ -2486,10 +2644,102 @@ controles, ordenados de mayor a menor capacidad de detección automática.
     \item \textbf{Fuentes normativas y bibliográficas.} El asistente no se utilizó como
     fuente de autoridad normativa: las resoluciones y circulares citadas se contrastaron
     con sus textos oficiales. La verificación de las referencias bibliográficas
-    secundarias contra su fuente original es responsabilidad del autor y constituye el
-    control con menor grado de automatización de los aquí enumerados; se recomienda
-    explícitamente su revisión en cualquier reutilización de este documento.
+    secundarias era, en la versión previa del documento, el control con menor grado de
+    automatización de los aquí enumerados, y resultó insuficiente: la
+    Sección \ref{sec:hallazgo_citas} documenta las fallas encontradas y el protocolo
+    que lo reemplaza.
 \end{enumerate}
+
+\section{Hallazgo sobre la integridad de las citas y protocolo corregido}
+\label{sec:hallazgo_citas}
+
+\subsection{Qué se encontró}
+
+Durante la evaluación previa a la sustentación, el asesor verificó las fuentes de la
+tabla de antecedentes de ML en detección de fraude en salud y de las cifras de
+degradación por deriva citadas en la Discusión, y encontró que no correspondían a su
+fuente. A partir de esa observación, el autor auditó una por una las referencias de la
+versión previa del documento contra la publicación o el texto oficial. El resultado fue
+el siguiente:
+
+\begin{itemize}
+    \item \textbf{Referencias no localizables.} Cuatro entradas de la bibliografía
+    —atribuidas a Chan et al.\ (2022), Joshi y Yesha (2020), González-Hernández et al.\
+    (2021) y Sadiq et al.\ (2017)— no pudieron localizarse en las revistas ni en las
+    bases de datos indicadas; el identificador DOI de la primera no resuelve. Se
+    eliminaron, junto con todas las afirmaciones y cifras que se sustentaban en ellas,
+    entre ellas el rango de degradación de ``15\%--30\% en ventanas de 3 a 6 meses''
+    de la Discusión.
+    \item \textbf{Citas mal atribuidas.} Brause et al.\ (1999) existe, pero trata sobre
+    fraude con tarjetas de crédito y no sobre reclamaciones de salud; la cifra del 85\%
+    que se le atribuía no le corresponde. Ortega et al.\ (2016) no pudo verificarse y
+    tampoco figuraba en la bibliografía. Ambas filas se retiraron de la tabla.
+    \item \textbf{Afirmaciones que la fuente no sostiene.} Rajpurkar et al.\ (2022)
+    es una publicación real, pero no contiene las afirmaciones que se le atribuían
+    sobre HL7 FHIR y variables financieras ni sobre prácticas de MLOps. Se conservó
+    solo como referencia general y las afirmaciones se reasignaron a fuentes que sí
+    las sostienen. Del mismo modo, Breiman (2001) y Chen y Guestrin (2016) se citaban
+    como si sustentaran una afirmación sobre gestión prestacional; ahora se citan solo
+    como fuentes de los algoritmos.
+    \item \textbf{Errores menores en fuentes normativas.} Se corrigieron el título de la
+    Ley 1966 de 2019, el año de la Resolución DIAN 000165 (2023, no 2022) y la
+    descripción de la Circular Externa Conjunta 007 de 2025, y se indicó que la
+    Resolución 1557 de 2023 fue derogada por la Resolución 2275 de 2023. La definición
+    de interoperabilidad, atribuida a la OMS, corresponde en realidad a HIMSS y se
+    reasignó. Se retiraron las entradas de la OMS (2019) y de HIMSS (2023), que no
+    pudieron localizarse con el título indicado, y la de ISO 13606, que no se citaba en
+    el texto y cuya página oficial no fue accesible para verificación. Finalmente,
+    toda entrada que permanece en la bibliografía incluye un DOI o una URL de acceso
+    comprobados.
+\end{itemize}
+
+Las fuentes eliminadas o corregidas se usaban en el marco teórico y en la discusión; en
+ningún caso sustentaban los resultados experimentales, que provienen de la ejecución
+de código y no se modificaron. No es posible determinar con certeza cómo se originó
+cada cita defectuosa. Sin embargo, el patrón observado (referencias verosímiles, con
+autores, revista y paginación plausibles, pero inexistentes) es el modo de falla
+característico de los modelos de lenguaje descrito en la
+Sección \ref{sec:control_alucinaciones}, y el marco teórico se redactó con asistencia.
+La conclusión que se asume es que el control número 7 de esa sección no se ejecutó con
+el rigor que el propio documento declaraba. La responsabilidad es del autor.
+
+\subsection{Protocolo de verificación adoptado}
+
+A partir de esta revisión, toda referencia que ingrese al documento debe cumplir las
+siguientes reglas:
+
+\begin{enumerate}
+    \item \textbf{Existencia verificada en fuente primaria.} Cada referencia se localiza
+    en el sitio de la editorial, en un índice bibliográfico (PubMed, ACM Digital
+    Library, IEEE Xplore, Springer, arXiv) o, para normas, en el texto oficial publicado
+    por la entidad emisora. Una referencia que solo aparece en la salida de un asistente
+    no se considera localizada.
+    \item \textbf{Identificador obligatorio y resuelto.} Toda referencia incluye un DOI o,
+    en su defecto, una URL de acceso. Se comprueba que el DOI resuelve en doi.org y que
+    sus metadatos en Crossref (autores, título, año y páginas) coinciden con la entrada, y
+    que la URL responde y muestra el documento citado. Una fuente sin identificador
+    comprobable se elimina.
+    \item \textbf{Correspondencia afirmación--fuente.} Toda cifra o afirmación puntual
+    atribuida a una fuente se contrasta con el texto de la fuente, no con su resumen ni
+    con un comentario de terceros. Si no puede localizarse el pasaje exacto, la
+    afirmación se reformula en términos generales o se elimina.
+    \item \textbf{Sin cifras ajenas de difícil comparación.} Las métricas de otros
+    estudios no se presentan como comparables con las de este trabajo cuando difieren
+    los datos, la etiqueta o la métrica. Por ello la
+    Tabla \ref{tab:antecedentes_fraude} describe la relevancia de cada antecedente en
+    lugar de reportar su desempeño.
+    \item \textbf{El asistente propone y el autor verifica.} Un asistente de IA puede
+    sugerir candidatos o dar formato a una referencia. La decisión de incluirla solo se
+    toma después de que el autor aplique los puntos 1 a 3 con la fuente en mano.
+    \item \textbf{Honestidad sobre el alcance de la búsqueda.} La revisión de
+    antecedentes se declara como narrativa (Sección \ref{sec:antecedentes_ml}), y las
+    afirmaciones de originalidad se formulan como ``no identificado en la literatura
+    consultada''.
+\end{enumerate}
+
+Este episodio confirma la advertencia de la sección de limitaciones: los controles
+automáticos protegen las cifras y el código, pero no la argumentación ni las citas.
+Para estas, el único control efectivo es la verificación humana contra la fuente.
 
 \section{Verificación de resultados}
 
@@ -2571,69 +2821,103 @@ El autor declara que el uso de herramientas de inteligencia artificial en este t
 se limitó a las funciones descritas en este capítulo; que los datos, resultados
 experimentales y conclusiones son producto de la investigación realizada sobre
 información real de Savia Salud EPS; que no se emplearon dichas herramientas para
-fabricar datos, resultados ni referencias; y que asume la responsabilidad académica
+fabricar datos ni resultados; que las referencias defectuosas detectadas en la versión
+previa fueron auditadas y corregidas según la Sección \ref{sec:hallazgo_citas}; y que asume la responsabilidad académica
 plena sobre la totalidad del contenido presentado.
 
 % --- REFERENCIAS ---
 \begin{thebibliography}{99}
 
+% Toda entrada de esta lista tiene un DOI o una URL de acceso comprobados el
+% 2026-09-23 (DOI resuelto en doi.org y metadatos contrastados en Crossref; URL con
+% respuesta HTTP 200 y contenido correspondiente). Ver la Sección 11.5.
+
 % Normativa Colombiana
 \bibitem{ley1966}
-Congreso de la República de Colombia. (2019). Ley 1966 de 2019: Por la cual se modifica la Ley 100 de 1993 y se dictan otras disposiciones. \textit{Diario Oficial}, Bogotá D.C.
+Congreso de la República de Colombia. (2019). Ley 1966 de 2019: Por medio de la cual se adoptan medidas para la gestión y transparencia en el Sistema de Seguridad Social en Salud y se dictan otras disposiciones. \url{https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=97190}
 
 \bibitem{res2275}
-Ministerio de Salud y Protección Social. (2023). Resolución 2275 de 2023: Por la cual se reglamenta el reporte de los Registros Individuales de Prestación de Servicios de Salud - RIPS como soporte de la factura electrónica de venta. \textit{Diario Oficial}, Bogotá D.C.
+Ministerio de Salud y Protección Social. (2023). Resolución 2275 de 2023: Por la cual se expide la resolución única reglamentaria del Registro Individual de Prestación de Servicios de Salud -- RIPS, soporte de la Factura Electrónica de Venta -- FEV en salud y se dictan otras disposiciones. \url{https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No%202275%20de%202023.pdf}
 
 \bibitem{res1884}
-Ministerio de Salud y Protección Social. (2024). Resolución 1884 de 2024: Por la cual se modifica la Resolución 2275 de 2023. \textit{Diario Oficial}, Bogotá D.C.
+Ministerio de Salud y Protección Social. (2024). Resolución 1884 de 2024: Por la cual se modifica la Resolución 2275 de 2023 y se dictan otras disposiciones. \url{https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No%201884%20de%202024.pdf}
 
 \bibitem{circ007}
-Ministerio de Salud y Protección Social \& Superintendencia Nacional de Salud. (2025). Circular Conjunta 007 de 2025: Lineamientos para la radicación de cuentas de cobro en el SGSSS. Bogotá D.C.
+Ministerio de Salud y Protección Social \& Superintendencia Nacional de Salud. (2025). Circular Externa Conjunta 007 de 2025 [lineamientos para garantizar el cumplimiento normativo en la radicación de la factura electrónica de venta en salud y el uso del RIPS]. \url{https://www.bogotajuridica.gov.co/sisjur/normas/Norma1.jsp?i=175657&dt=S}
 
 \bibitem{res3374}
-Ministerio de Salud. (2000). Resolución 3374 de 2000: Por la cual se reglamentan los RIPS. \textit{Diario Oficial}, Bogotá D.C.
-
-% Estándares Internacionales
-\bibitem{oms2019}
-Organización Mundial de la Salud. (2019). \textit{Marco de interoperabilidad para sistemas de información en salud}. Ginebra: OMS.
-
-\bibitem{himss2023}
-Healthcare Information and Management Systems Society. (2023). \textit{Interoperability in Healthcare: A maturity model}. Chicago: HIMSS.
-
-\bibitem{iso2016}
-International Organization for Standardization. (2016). ISO 13606: Electronic health record communication. Ginebra: ISO.
-
-% Machine Learning y Auditoría
-\bibitem{breiman2001}
-Breiman, L. (2001). Random forests. \textit{Machine Learning}, 45(1), 5-32. \url{https://doi.org/10.1023/A:1010933404324}
-
-\bibitem{chen2016xgboost}
-Chen, T., \& Guestrin, C. (2016). XGBoost: A scalable tree boosting system. In \textit{Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining} (pp. 785-794).
-
-\bibitem{chan2022fraud}
-Chan, T. F., Lee, J. H., \& Wong, S. C. (2022). Fraud detection in healthcare using machine learning: A systematic review. \textit{Health Informatics Journal}, 28(2). \url{https://doi.org/10.1177/14604582221089012}
-
-\bibitem{joshi2020claims}
-Joshi, A., \& Yesha, Y. (2020). Predicting audit outcomes for insurance claims using ensemble learning. \textit{IEEE Access}, 8, 156723-156734.
-
-\bibitem{gonzalez2021auditoria}
-González-Hernández, J., et al. (2021). Scoring de riesgo para auditoría prestacional basado en machine learning. \textit{Revista Mexicana de Ingeniería Biomédica}, 42(3), 45-58.
-
-\bibitem{rajpurkar2022ai}
-Rajpurkar, P., Chen, E., Banerjee, O., \& Topol, E. J. (2022). AI in health and medicine. \textit{Nature Medicine}, 28, 31-38. \url{https://doi.org/10.1038/s41591-021-01614-0}
-
-\bibitem{sadiq2017}
-Sadiq, S., et al. (2017). Outlier detection in healthcare claims using support vector machines. \textit{Journal of Healthcare Information Management}, 31(2), 45-52.
+Ministerio de Salud. (2000). Resolución 3374 de 2000: Por la cual se reglamentan los datos básicos que deben reportar los prestadores de servicios de salud y las entidades administradoras de planes de beneficios sobre los servicios de salud prestados (derogada por la Resolución 1036 de 2022). \url{https://www.minsalud.gov.co/sites/rid/Lists/BibliotecaDigital/RIDE/DE/DIJ/Resoluci%C3%B3n_3374_de_2000.pdf}
 
 % Facturación Electrónica
 \bibitem{dian2022}
-Dirección de Impuestos y Aduanas Nacionales. (2022). Resolución 000165 de 2022: Por la cual se reglamenta la factura electrónica. Bogotá D.C.
+Dirección de Impuestos y Aduanas Nacionales. (2023). Resolución 000165 de 2023 (1 de noviembre): Por la cual se desarrolla el sistema de facturación, los proveedores tecnológicos, se adopta la Versión 1.9 del Anexo Técnico de Factura Electrónica de Venta, se expide el Anexo Técnico 1.0 del documento equivalente electrónico, y se dictan otras disposiciones en materia del sistema de facturación. \textit{Diario Oficial} No. 52.567. \url{https://normograma.dian.gov.co/dian/compilacion/docs/resolucion_dian_0165_2023.htm}
 
 \bibitem{res510}
-Ministerio de Salud y Protección Social. (2022). Resolución 510 de 2022: Por la cual se reglamentan aspectos de la factura electrónica en salud. \textit{Diario Oficial}, Bogotá D.C.
+Ministerio de Salud y Protección Social. (2022). Resolución 510 de 2022 [adopta los campos de datos adicionales para la generación de la factura electrónica de venta en salud y establece procedimientos para su generación y radicación]. \url{https://www.minsalud.gov.co/sites/rid/Lists/BibliotecaDigital/RIDE/DE/DIJ/resolucion-510-de-2022.pdf}
 
 \bibitem{res1557}
-Ministerio de Salud y Protección Social. (2023). Resolución 1557 de 2023: Por la cual se reglamenta el Mecanismo Único de Validación. \textit{Diario Oficial}, Bogotá D.C.
+Ministerio de Salud y Protección Social. (2023). Resolución 1557 de 2023: Por la cual se reglamenta el mecanismo único de validación del Registro Individual de Prestación de Servicios de Salud (RIPS) como soporte de la Factura Electrónica de Venta en Salud y se dictan otras disposiciones (derogada por la Resolución 2275 de 2023). \url{https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No%201557%20de%202023.pdf}
+
+% Interoperabilidad
+\bibitem{sullivan2019himss}
+Sullivan, T. (2019, 22 de marzo). HIMSS writes new definition for interoperability. \textit{Healthcare IT News}. \url{https://www.healthcareitnews.com/news/himss-writes-new-definition-interoperability}
+
+% Metodología y algoritmos
+\bibitem{wirth2000crisp}
+Wirth, R., \& Hipp, J. (2000). CRISP-DM: Towards a standard process model for data mining. En \textit{Proceedings of the 4th International Conference on the Practical Applications of Knowledge Discovery and Data Mining} (pp. 29--39). \url{https://cs.unibo.it/~danilo.montesi/CBD/Beatriz/10.1.1.198.5133.pdf}
+
+\bibitem{breiman2001}
+Breiman, L. (2001). Random forests. \textit{Machine Learning}, 45(1), 5--32. \url{https://doi.org/10.1023/A:1010933404324}
+
+\bibitem{chen2016xgboost}
+Chen, T., \& Guestrin, C. (2016). XGBoost: A scalable tree boosting system. En \textit{Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining} (pp. 785--794). \url{https://doi.org/10.1145/2939672.2939785}
+
+\bibitem{ke2017lightgbm}
+Ke, G., Meng, Q., Finley, T., Wang, T., Chen, W., Ma, W., Ye, Q., \& Liu, T.-Y. (2017). LightGBM: A highly efficient gradient boosting decision tree. En \textit{Advances in Neural Information Processing Systems 30} (pp. 3146--3154). \url{https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree}
+
+\bibitem{akiba2019optuna}
+Akiba, T., Sano, S., Yanase, T., Ohta, T., \& Koyama, M. (2019). Optuna: A next-generation hyperparameter optimization framework. En \textit{Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining} (pp. 2623--2631). \url{https://doi.org/10.1145/3292500.3330701}
+
+\bibitem{lundberg2017shap}
+Lundberg, S. M., \& Lee, S.-I. (2017). A unified approach to interpreting model predictions. En \textit{Advances in Neural Information Processing Systems 30}. \url{https://papers.nips.cc/paper/7062-a-unified-approach-to-interpreting-model-predictions}
+
+% Antecedentes de ML en reclamaciones de salud
+\bibitem{li2008survey}
+Li, J., Huang, K.-Y., Jin, J., \& Shi, J. (2008). A survey on statistical methods for health care fraud detection. \textit{Health Care Management Science}, 11(3), 275--287. \url{https://doi.org/10.1007/s10729-007-9045-4}
+
+\bibitem{kumar2010claims}
+Kumar, M., Ghani, R., \& Mei, Z.-S. (2010). Data mining to predict and prevent errors in health insurance claims processing. En \textit{Proceedings of the 16th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining} (pp. 65--74). \url{https://doi.org/10.1145/1835804.1835816}
+
+\bibitem{joudaki2015review}
+Joudaki, H., Rashidian, A., Minaei-Bidgoli, B., Mahmoodi, M., Geraili, B., Nasiri, M., \& Arab, M. (2015). Using data mining to detect health care fraud and abuse: A review of literature. \textit{Global Journal of Health Science}, 7(1), 194. \url{https://doi.org/10.5539/gjhs.v7n1p194}
+
+\bibitem{herland2018bigdata}
+Herland, M., Khoshgoftaar, T. M., \& Bauder, R. A. (2018). Big Data fraud detection using multiple Medicare data sources. \textit{Journal of Big Data}, 5, 29. \url{https://doi.org/10.1186/s40537-018-0138-3}
+
+\bibitem{herland2020medicare}
+Herland, M., Bauder, R. A., \& Khoshgoftaar, T. M. (2020). Approaches for identifying U.S. Medicare fraud in provider claims data. \textit{Health Care Management Science}, 23(1), 2--19. \url{https://doi.org/10.1007/s10729-018-9460-8}
+
+\bibitem{kim2020deepclaim}
+Kim, B.-H., Sridharan, S., Atwal, A., \& Ganapathi, V. (2020). Deep Claim: Payer response prediction from claims data with deep learning. \textit{arXiv preprint} arXiv:2007.06229. \url{https://arxiv.org/abs/2007.06229}
+
+\bibitem{dupreez2025fraud}
+du Preez, A., Bhattacharya, S., Beling, P., \& Bowen, E. (2025). Fraud detection in healthcare claims using machine learning: A systematic review. \textit{Artificial Intelligence in Medicine}, 160, 103061. \url{https://doi.org/10.1016/j.artmed.2024.103061}
+
+\bibitem{rajkomar2018ehr}
+Rajkomar, A., Oren, E., Chen, K., et al. (2018). Scalable and accurate deep learning with electronic health records. \textit{npj Digital Medicine}, 1, 18. \url{https://doi.org/10.1038/s41746-018-0029-1}
+
+\bibitem{rajpurkar2022ai}
+Rajpurkar, P., Chen, E., Banerjee, O., \& Topol, E. J. (2022). AI in health and medicine. \textit{Nature Medicine}, 28, 31--38. \url{https://doi.org/10.1038/s41591-021-01614-0}
+
+% Deriva del concepto y ML en producción
+\bibitem{gama2014survey}
+Gama, J., Žliobaitė, I., Bifet, A., Pechenizkiy, M., \& Bouchachia, A. (2014). A survey on concept drift adaptation. \textit{ACM Computing Surveys}, 46(4), Artículo 44. \url{https://doi.org/10.1145/2523813}
+
+\bibitem{lu2019drift}
+Lu, J., Liu, A., Dong, F., Gu, F., Gama, J., \& Zhang, G. (2019). Learning under concept drift: A review. \textit{IEEE Transactions on Knowledge and Data Engineering}, 31(12), 2346--2363. \url{https://doi.org/10.1109/TKDE.2018.2876857}
+
+\bibitem{breck2017mltest}
+Breck, E., Cai, S., Nielsen, E., Salib, M., \& Sculley, D. (2017). The ML test score: A rubric for ML production readiness and technical debt reduction. En \textit{2017 IEEE International Conference on Big Data} (pp. 1123--1132). \url{https://doi.org/10.1109/BigData.2017.8258038}
 
 \end{thebibliography}
 
@@ -2684,7 +2968,7 @@ feature_store/
 \begin{table}[H]
 \centering
 \caption{Validaciones aplicadas a datos RIPS JSON}
-\small
+\footnotesize
 \begin{tabular}{@{}llcc@{}}
 \toprule
 \textbf{Validación} & \textbf{Descripción} & \textbf{Umbral} & \textbf{Acción si falla} \\
