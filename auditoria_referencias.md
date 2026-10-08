@@ -41,23 +41,23 @@ tú mismo**: abre cada enlace y marca la casilla.
 - [ ] Schröer et al. 2021 (CRISP-DM, añadida 2026-10-08): https://doi.org/10.1016/j.procs.2021.01.199
 
 **URL (revisión del 2026-10-08):**
-- [ ] Ke et al. 2017 (LightGBM): el servidor de NeurIPS rechaza conexiones → copia archivada verificada (título y 8 autores):
+- [ x] Ke et al. 2017 (LightGBM): el servidor de NeurIPS rechaza conexiones → copia archivada verificada (título y 8 autores):
       https://web.archive.org/web/20200901123540/https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree
-- [ ] Lundberg & Lee 2017 (SHAP): versión de acceso en arXiv: https://arxiv.org/abs/1705.07874
+- [x ] Lundberg & Lee 2017 (SHAP): versión de acceso en arXiv: https://arxiv.org/abs/1705.07874
 - [x] Kim et al. 2020 (Deep Claim): https://arxiv.org/abs/2007.06229
-- [ ] Wirth & Hipp 2000 (CRISP-DM): el PDF es correcto (verifiqué título, autores y resumen), pero el servidor de la universidad es lento.
+- [x] Wirth & Hipp 2000 (CRISP-DM): el PDF es correcto (verifiqué título, autores y resumen), pero el servidor de la universidad es lento.
       Se mantiene y se añade como respaldo Schröer et al. 2021 (con DOI).
       https://cs.unibo.it/~danilo.montesi/CBD/Beatriz/10.1.1.198.5133.pdf
-- [ ] Sullivan 2019 (HIMSS): copia archivada: https://web.archive.org/web/20260921033351/https://www.healthcareitnews.com/news/himss-writes-new-definition-interoperability
-- [ ] Ley 1966/2019: **se mantiene** https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=97190
+- [ x] Sullivan 2019 (HIMSS): copia archivada: https://web.archive.org/web/20260921033351/https://www.healthcareitnews.com/news/himss-writes-new-definition-interoperability
+- [ x] Ley 1966/2019: **se mantiene** https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=97190
       (la URL que anotaste corresponde a la Res. 2275, no a la Ley 1966)
-- [ ] Res. 2275/2023: https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No%202275%20de%202023.pdf
-- [ ] Res. 1884/2024: https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No%201884%20de%202024.pdf
-- [ ] Res. 1557/2023: https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No%201557%20de%202023.pdf
-- [ ] Res. 3374/2000 (la misma que anotaste): https://www.minsalud.gov.co/sites/rid/Lists/BibliotecaDigital/RIDE/DE/DIJ/Resoluci%C3%B3n_3374_de_2000.pdf
-- [ ] Res. 510/2022 (**tu URL**; título oficial copiado del PDF): https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No.%20510%20de%202022.pdf
-- [ ] Circular Conjunta 007/2025 (**tu URL**; fecha 3-mar-2025 y asunto copiados del PDF): https://www.minsalud.gov.co/sites/rid/Lists/BibliotecaDigital/RIDE/DE/DIJ/circular-conjunta-007-de-2025.pdf
-- [ ] Res. DIAN 000165/2023 (**tu URL**, PDF oficial firmado): https://www.dian.gov.co/normatividad/Normatividad/Resoluci%C3%B3n%20000165%20de%2001-11-2023.pdf
+- [ x] Res. 2275/2023: https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No%202275%20de%202023.pdf
+- [ x] Res. 1884/2024: https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No%201884%20de%202024.pdf
+- [ x] Res. 1557/2023: https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No%201557%20de%202023.pdf
+- [ x] Res. 3374/2000 (la misma que anotaste): https://www.minsalud.gov.co/sites/rid/Lists/BibliotecaDigital/RIDE/DE/DIJ/Resoluci%C3%B3n_3374_de_2000.pdf
+- [ x] Res. 510/2022 (**tu URL**; título oficial copiado del PDF): https://www.minsalud.gov.co/Normatividad_Nuevo/Resoluci%C3%B3n%20No.%20510%20de%202022.pdf
+- [ x] Circular Conjunta 007/2025 (**tu URL**; fecha 3-mar-2025 y asunto copiados del PDF): https://www.minsalud.gov.co/sites/rid/Lists/BibliotecaDigital/RIDE/DE/DIJ/circular-conjunta-007-de-2025.pdf
+- [ x] Res. DIAN 000165/2023 (**tu URL**, PDF oficial firmado): https://www.dian.gov.co/normatividad/Normatividad/Resoluci%C3%B3n%20000165%20de%2001-11-2023.pdf
 
 ## 3. Afirmaciones que debes confirmar tú
 
