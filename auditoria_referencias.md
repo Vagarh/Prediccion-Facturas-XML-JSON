@@ -50,11 +50,11 @@ tú mismo**: abre cada enlace y marca la casilla.
 
 ## 3. Afirmaciones que debes confirmar tú
 
-- [ ] **Sec. 4.8, párrafo 1:** describe la búsqueda (bases de datos y términos). Ajústala a como buscaste tú.
-- [ ] **Sec. 4.8.2, Kim et al.:** "cerca de 2,9 millones de reclamaciones de dos sistemas de salud de EE. UU.".
-- [ ] **Sec. 4.8.2, Kumar et al.:** que el paper discute la deriva del concepto y el aprendizaje activo.
-- [ ] **Sec. 4.2.1, definición de interoperabilidad:** es una traducción propia de la definición de HIMSS publicada en Sullivan 2019.
-- [ ] **Sec. 11.5:** el texto sobre el origen probable de las citas falsas.
+- [ok ] **Sec. 4.8, párrafo 1:** describe la búsqueda (bases de datos y términos). Ajústala a como buscaste tú.
+- [ ok] **Sec. 4.8.2, Kim et al.:** "cerca de 2,9 millones de reclamaciones de dos sistemas de salud de EE. UU.".
+- [ok ] **Sec. 4.8.2, Kumar et al.:** que el paper discute la deriva del concepto y el aprendizaje activo.
+- [ok ] **Sec. 4.2.1, definición de interoperabilidad:** es una traducción propia de la definición de HIMSS publicada en Sullivan 2019.
+- [ok ] **Sec. 11.5:** el texto sobre el origen probable de las citas falsas.
 
 ## 4. Mapa de cambios frente al concepto
 
